@@ -160,6 +160,7 @@ class MainActivity : Activity() {
         group("Customise")
         item("Plugins & extensions", "Install, enable and manage your add-ons") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
         item("Themes & appearance", "Colours, message spacing, avatars and layout") { showThemes() }
+        item("Accent colour & typography", "Choose a custom accent and interface font") { showTypographySettings() }
         item("Feature library", "A larger collection of practical chat and interface controls") { showFeatureLibrary() }
         item("My profile cosmetics", "Show your local badges and activity on your own profile panel") { showProfileStudio() }
         item("Cosmetic lab", "Local badge and Nitro-style profile mock-ups") { cosmeticLab() }
@@ -239,6 +240,43 @@ class MainActivity : Activity() {
                     .setMessage("This build has local feature switches only. Arbitrary third-party JavaScript plugins are not loaded for security and compatibility reasons. A safe marketplace needs signed/allowlisted plugins and a Discord-compatible injection layer.")
                     .setPositiveButton("OK", null).show()
             }.show()
+    }
+
+    private fun showTypographySettings() {
+        val accent = EditText(this).apply {
+            hint = "#8B5CF6"
+            setText(prefs.getString("custom_accent", ""))
+            inputType = InputType.TYPE_CLASS_TEXT
+        }
+        val fonts = arrayOf("System default", "Arial", "Georgia", "Trebuchet MS", "Verdana", "monospace")
+        val current = prefs.getInt("font_choice", 0).coerceIn(0, fonts.lastIndex)
+        val spinner = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, fonts)
+            setSelection(current)
+        }
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(8), dp(18), 0)
+            addView(TextView(this@MainActivity).apply { text = "ACCENT COLOUR (HEX)"; setTextColor(Color.LTGRAY); textSize = 11f })
+            addView(accent)
+            addView(TextView(this@MainActivity).apply { text = "INTERFACE FONT"; setTextColor(Color.LTGRAY); textSize = 11f; setPadding(0, dp(12), 0, dp(4)) })
+            addView(spinner)
+        }
+        AlertDialog.Builder(this).setTitle("Accent & typography").setView(box)
+            .setPositiveButton("Apply") { _, _ ->
+                val value = accent.text.toString().trim()
+                if (value.isNotEmpty() && !Regex("^#[0-9a-fA-F]{6}$").matches(value)) {
+                    Toast.makeText(this, "Use a six-digit hex colour such as #8B5CF6", Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                prefs.edit().putString("custom_accent", value).putInt("font_choice", spinner.selectedItemPosition).apply()
+                applyCustomizations()
+                Toast.makeText(this, "Appearance updated", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Reset") { _, _ ->
+                prefs.edit().remove("custom_accent").putInt("font_choice", 0).apply()
+                applyCustomizations()
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun showThemes() {
@@ -1061,10 +1099,14 @@ class MainActivity : Activity() {
             arrayOf("#2b1719","#3a2023","#1c1012","#fb7185","#fff1f2","#e6a8ad"),
             arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0")
         )
-        val p = palettes[theme]
+        val p = palettes[theme].clone()
+        prefs.getString("custom_accent", "")?.takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.let { p[3] = it }
         val rules = StringBuilder()
         rules.append(":root{color-scheme:" + (if(theme == 6) "light" else "dark") + ";}:root,body,#app-mount,.theme-dark,.theme-light{--background-primary:"+p[0]+"!important;--background-secondary:"+p[1]+"!important;--background-secondary-alt:"+p[1]+"!important;--background-tertiary:"+p[2]+"!important;--background-floating:"+p[1]+"!important;--channeltextarea-background:"+p[2]+"!important;--modal-background:"+p[1]+"!important;--header-primary:"+p[4]+"!important;--text-normal:"+p[4]+"!important;--header-secondary:"+p[5]+"!important;--text-muted:"+p[5]+"!important;--interactive-normal:"+p[5]+"!important;--brand-experiment:"+p[3]+"!important;--brand-experiment-560:"+p[3]+"!important;--button-secondary-background:"+p[2]+"!important;--scrollbar-thin-thumb:"+p[5]+"!important;}")
         rules.append("html,body,#app-mount{background:"+p[0]+"!important;color:"+p[4]+"!important;}")
+        val fontFamilies = arrayOf("system-ui, sans-serif", "Arial, sans-serif", "Georgia, serif", "'Trebuchet MS', sans-serif", "Verdana, sans-serif", "monospace")
+        val font = fontFamilies[prefs.getInt("font_choice", 0).coerceIn(0, fontFamilies.lastIndex)]
+        rules.append("body,#app-mount{font-family:"+font+"!important;}")
         if(prefs.getBoolean("compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("noavatars",false)) rules.append("[class*=messageListItem] [class*=avatar]{display:none!important}")
         if(prefs.getBoolean("cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
