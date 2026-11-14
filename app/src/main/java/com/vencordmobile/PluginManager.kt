@@ -8,7 +8,7 @@ import org.json.JSONArray
 
 class PluginManager(private val activity: Activity, private val openFeature: (Int) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
-    private val features = arrayOf("Rich Presence editor (local preview)", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Privacy controls")
+    private val features = arrayOf("Rich Presence editor (local preview)", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Privacy controls", "Install / manage JS plugins")
     fun open() {
         AlertDialog.Builder(activity).setTitle("Vencord Mobile • Features")
             .setItems(features) { _, index -> openFeature(index) }
