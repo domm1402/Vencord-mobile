@@ -197,9 +197,36 @@ class MainActivity : Activity() {
     }
 
     private fun showChatTools() {
-        val opts = arrayOf("Enable quick-reaction helper UI", "Compact message spacing", "Hide Nitro upsell panels", "Enable local translation helper")
-        val keys = arrayOf("quickreact","compact","upsells","translator")
-        AlertDialog.Builder(this).setTitle("Chat & message tools").setMultiChoiceItems(opts, keys.map { prefs.getBoolean(it,false) }.toBooleanArray()) { _, i, checked -> prefs.edit().putBoolean(keys[i],checked).apply(); applyCustomizations() }.setPositiveButton("Done", null).show()
+        val options = arrayOf("Quick reaction palette", "Translate selected text", "Compact message spacing", "Hide Nitro promotional panels")
+        AlertDialog.Builder(this).setTitle("Chat tools").setItems(options) { _, index ->
+            when(index) {
+                0 -> quickReactionPalette()
+                1 -> translateSelection()
+                2 -> { val enabled = !prefs.getBoolean("compact", false); prefs.edit().putBoolean("compact", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Compact spacing on" else "Compact spacing off", Toast.LENGTH_SHORT).show() }
+                3 -> { val enabled = !prefs.getBoolean("upsells", false); prefs.edit().putBoolean("upsells", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Promotional panels hidden where supported" else "Promotional panels shown", Toast.LENGTH_SHORT).show() }
+            }
+        }.show()
+    }
+
+    private fun quickReactionPalette() {
+        val emojis = arrayOf("👍", "❤️", "😂", "😭", "🔥", "🎉", "👀", "🤝", "💀", "✨", "🙏", "🚀")
+        AlertDialog.Builder(this).setTitle("Quick reactions • tap to copy")
+            .setItems(emojis) { _, which ->
+                val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Reaction", emojis[which]))
+                Toast.makeText(this, "${emojis[which]} copied", Toast.LENGTH_SHORT).show()
+            }.show()
+    }
+
+    private fun translateSelection() {
+        web.evaluateJavascript("encodeURIComponent(window.getSelection().toString())") { result ->
+            try {
+                val encoded = org.json.JSONTokener(result).nextValue() as? String ?: ""
+                if (encoded.isBlank()) { Toast.makeText(this, "Select some text in Discord first", Toast.LENGTH_SHORT).show(); return@evaluateJavascript }
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://translate.google.com/?sl=auto&tl=en&text=$encoded&op=translate"))
+                startActivity(intent)
+            } catch (_: Exception) { Toast.makeText(this, "Could not read selected text", Toast.LENGTH_SHORT).show() }
+        }
     }
 
     private fun showPrivacy() {
