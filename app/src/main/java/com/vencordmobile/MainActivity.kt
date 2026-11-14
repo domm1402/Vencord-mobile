@@ -160,6 +160,7 @@ class MainActivity : Activity() {
         group("Customise")
         item("Plugins & extensions", "Install, enable and manage your add-ons") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
         item("Themes & appearance", "Colours, message spacing, avatars and layout") { showThemes() }
+        item("Feature library", "A larger collection of practical chat and interface controls") { showFeatureLibrary() }
         item("My profile cosmetics", "Show your local badges and activity on your own profile panel") { showProfileStudio() }
         item("Cosmetic lab", "Local badge and Nitro-style profile mock-ups") { cosmeticLab() }
         item("Custom CSS", "Style the Discord page yourself") { editCss() }
@@ -564,6 +565,65 @@ class MainActivity : Activity() {
             .show()
     }
 
+    private fun showFeatureLibrary() {
+        val groups = linkedMapOf(
+            "Messages & readability" to listOf(
+                "compact" to "Compact message spacing",
+                "cards" to "Message cards",
+                "bigtext" to "Larger message text",
+                "noavatars" to "Hide message avatars",
+                "hide_embeds" to "Hide link embeds",
+                "hide_attachments" to "Hide image and video attachments",
+                "hide_blocked" to "Hide blocked-message placeholders",
+                "hide_reactions" to "Hide reaction rows"
+            ),
+            "Navigation & layout" to listOf(
+                "compact_channels" to "Compact channel list",
+                "hide_members" to "Hide member list",
+                "hide_activity" to "Hide activity panels",
+                "hide_server_boost" to "Hide server boost promotions",
+                "hide_discover" to "Hide discovery promotions",
+                "hide_shop" to "Hide shop entry points"
+            ),
+            "Distraction controls" to listOf(
+                "upsells" to "Hide Nitro promotions",
+                "hide_gift" to "Hide gift buttons",
+                "hide_gif" to "Hide GIF buttons",
+                "hide_stickers" to "Hide sticker buttons",
+                "hide_typing" to "Hide typing indicator",
+                "reduce_motion" to "Reduce animations",
+                "hide_profile_banners" to "Hide profile banners"
+            )
+        )
+        val all = groups.values.flatten()
+        val labels = all.map { it.second }.toTypedArray()
+        val checked = BooleanArray(all.size) { i -> prefs.getBoolean("feature_" + all[i].first, false) }
+        AlertDialog.Builder(this)
+            .setTitle("Feature library")
+            .setMessage("Choose the local interface features to enable. These are visual controls only and do not change server data or grant Discord account perks.")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                checked[which] = isChecked
+                prefs.edit().putBoolean("feature_" + all[which].first, isChecked).apply()
+            }
+            .setPositiveButton("Apply") { _, _ ->
+                val editor = prefs.edit()
+                all.forEachIndexed { i, pair -> editor.putBoolean("feature_" + pair.first, checked[i]) }
+                editor.apply()
+                applyCustomizations()
+                Toast.makeText(this, "Feature library settings applied", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Enable recommended") { _, _ ->
+                val recommended = setOf("compact", "cards", "hide_server_boost", "hide_discover", "hide_shop", "hide_gift", "hide_gif", "hide_stickers", "reduce_motion")
+                val editor = prefs.edit()
+                all.forEach { editor.putBoolean("feature_" + it.first, it.first in recommended) }
+                editor.apply()
+                applyCustomizations()
+                Toast.makeText(this, "Recommended features enabled", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
     private fun showChatTools() {
         val options = arrayOf("Quick reaction palette", "Translate selected text", "Compact message spacing", "Hide Nitro promotional panels", "Format a message", "Create Discord timestamp", "Markdown reference", "Copy selected text")
         AlertDialog.Builder(this).setTitle("Chat tools").setItems(options) { _, index ->
@@ -736,6 +796,16 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("hide_attachments",false)) rules.append("[class*=attachmentContentContainer],[class*=imageContent],[class*=videoContainer]{display:none!important}")
         if(prefs.getBoolean("reduce_motion",false)) rules.append("*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}")
         if(prefs.getBoolean("hide_sticker_buttons",false)) rules.append("button[aria-label*=GIF],button[aria-label*=sticker],[class*=stickerButton],[class*=gifButton]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_blocked",false)) rules.append("[class*=blockedMessage],[class*=blockedSystemMessage]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_reactions",false)) rules.append("[class*=reactions]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_server_boost",false)) rules.append("[class*=guildBoost],[class*=boostedGuildTier]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_discover",false)) rules.append("[class*=discoveryUpsell],[class*=discoverUpsell]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_shop",false)) rules.append("[class*=shopButton],[aria-label*=Shop]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_gift",false)) rules.append("button[aria-label*=gift i],[class*=giftButton]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_gif",false)) rules.append("button[aria-label*=GIF i],[class*=gifButton]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_stickers",false)) rules.append("button[aria-label*=sticker i],[class*=stickerButton]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_typing",false)) rules.append("[class*=typing],[class*=typingIndicator]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_profile_banners",false)) rules.append("[class*=profileBanner]{display:none!important}")
         rules.append(prefs.getString("css", "") ?: "")
         val escaped = rules.toString().replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ")
         web.evaluateJavascript("(function(){var s=document.getElementById('vcm-style');if(!s){s=document.createElement('style');s.id='vcm-style';document.head.appendChild(s);}s.textContent='"+escaped+"';})();", null)
