@@ -173,8 +173,8 @@ class MainActivity : Activity() {
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Bookmarks", "Save, search and reopen Discord pages") { showBookmarks() }
         item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
-            val opts = arrayOf("Back", "Forward", "Find on page", "Copy page URL", "Desktop / mobile mode", "Reload", "Clear cache")
-            AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> web.reload(); 6 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
+            val opts = arrayOf("Back", "Forward", "Find on page", "Copy page URL", "Desktop / mobile mode", "Toggle reader mode", "Page zoom", "Reload", "Clear cache")
+            AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> toggleReaderMode(); 6 -> showPageZoom(); 7 -> web.reload(); 8 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
         }
         item("Open Discord in browser", "Use your external browser") { startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app"))) }
         item("About & limitations", "Compatibility, privacy and feature details") { AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Independent Android Discord WebView with the official Vencord browser userscript bundled at build time. Vencord plugins that depend on desktop-only native APIs may not work. Genuine Nitro and account badges cannot be granted by a client mod. Live Android Rich Presence is supported by Discord Social SDK 1.10+ and needs a registered Application ID and SDK package.").setPositiveButton("OK",null).show() }
@@ -790,6 +790,45 @@ class MainActivity : Activity() {
                         }.setNegativeButton("Close", null).show()
                 }.setNegativeButton("Cancel", null).show()
         }.show()
+    }
+
+    private fun toggleReaderMode() {
+        val enabled = !prefs.getBoolean("reader_mode", false)
+        prefs.edit().putBoolean("reader_mode", enabled).apply()
+        web.evaluateJavascript("""
+            (function(on) {
+              var id='vcm-reader-style';
+              var old=document.getElementById(id);
+              if(old) old.remove();
+              if(on) {
+                var style=document.createElement('style');
+                style.id=id;
+                style.textContent='html,body{background:#f5f3ed!important;color:#202124!important}body{font-family:Georgia,serif!important;font-size:18px!important;line-height:1.75!important} [class*=sidebar],[class*=membersWrap],[class*=guilds],[class*=channelTabs],[class*=toolbar],[class*=nowPlayingColumn]{display:none!important} [class*=chatContent]{max-width:900px!important;margin:auto!important;background:#f5f3ed!important;color:#202124!important} [class*=messageContent]{color:#202124!important;font-size:18px!important;line-height:1.75!important} img,video{max-width:100%!important;height:auto!important}';
+                document.head.appendChild(style);
+              }
+            })(${enabled});
+        """.trimIndent(), null)
+        Toast.makeText(this, if(enabled) "Reader mode enabled" else "Reader mode disabled", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showPageZoom() {
+        val current = web.settings.textZoom.coerceIn(75, 175)
+        val seek = SeekBar(this).apply { max = 100; progress = current - 75 }
+        val label = TextView(this).apply { text = "Text size: " + current + "%"; setTextColor(Color.WHITE); gravity = Gravity.CENTER; setPadding(0, dp(10), 0, dp(6)) }
+        seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(bar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val value = progress + 75
+                label.text = "Text size: " + value + "%"
+                web.settings.textZoom = value
+            }
+            override fun onStartTrackingTouch(bar: SeekBar?) {}
+            override fun onStopTrackingTouch(bar: SeekBar?) {}
+        })
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(label); addView(seek) }
+        AlertDialog.Builder(this).setTitle("Page zoom").setView(box)
+            .setPositiveButton("Save") { _, _ -> prefs.edit().putInt("page_text_zoom", seek.progress + 75).apply() }
+            .setNeutralButton("Reset") { _, _ -> web.settings.textZoom = 100; prefs.edit().putInt("page_text_zoom", 100).apply() }
+            .setNegativeButton("Close", null).show()
     }
 
     private fun showBookmarks() {
