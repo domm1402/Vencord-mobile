@@ -26,7 +26,7 @@ class MainActivity : Activity() {
         web.settings.databaseEnabled = true
         web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
         web.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) { applyCustomizations() }
+            override fun onPageFinished(view: WebView?, url: String?) { applyCustomizations(); runPlugins() }
         }
         web.webChromeClient = WebChromeClient()
         root.addView(web, FrameLayout.LayoutParams(-1, -1))
@@ -123,7 +123,7 @@ class MainActivity : Activity() {
             .setView(edit).setPositiveButton("Copy") { _, _ -> val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Vencord Mobile settings", edit.text)); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }.setNegativeButton("Close",null).show()
     }
 
-    private fun applyCustomizations() {
+    private fun runPlugins() {\n        val scripts = prefs.getString("custom_plugins", "[]") ?: "[]"\n        val arr = try { org.json.JSONArray(scripts) } catch (_: Exception) { org.json.JSONArray() }\n        for (i in 0 until arr.length()) { val p = arr.optJSONObject(i) ?: continue; if (p.optBoolean("enabled", false)) { val code = p.optString("code", ""); val safe = code.replace("\\\\", "\\\\\\\\").replace("'", "\\\\'").replace("\\n", " "); web.evaluateJavascript("(function(){try{\\n"+safe+"\\n}catch(e){console.error('VCM plugin error',e)}})();", null) } }\n    }\n\n    private fun applyCustomizations() {
         val theme = prefs.getInt("theme", 0)
         val bg = arrayOf("#36393f","#000000","#120d20","#071827","#07170f","#241007")[theme.coerceIn(0,5)]
         val compact = prefs.getBoolean("compact", false)
