@@ -176,6 +176,35 @@ class MainActivity : Activity() {
         web.evaluateJavascript("(function(){var s=document.getElementById('vcm-style');if(!s){s=document.createElement('style');s.id='vcm-style';document.head.appendChild(s);}s.textContent='$escaped';})();", null)
     }
 
+    private fun findOnPage() {
+        val query = EditText(this).apply { hint = "Search visible page text" }
+        AlertDialog.Builder(this).setTitle("Find on page").setView(query)
+            .setPositiveButton("Find") { _, _ ->
+                val term = query.text.toString()
+                if (term.isNotBlank()) {
+                    web.findAllAsync(term)
+                    web.setFindListener { active, total, _ ->
+                        Toast.makeText(this, if (total == 0) "No matches" else "$active of $total matches", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }.setNeutralButton("Next") { _, _ -> web.findNext(true) }
+            .setNegativeButton("Close") { _, _ -> web.clearMatches() }.show()
+    }
+
+    private fun toggleDesktopMode() {
+        val enabled = !prefs.getBoolean("desktop_mode", false)
+        prefs.edit().putBoolean("desktop_mode", enabled).apply()
+        web.settings.userAgentString = if (enabled) {
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        } else {
+            WebView(this).settings.userAgentString.replace("; wv", "")
+        }
+        web.settings.useWideViewPort = enabled
+        web.settings.loadWithOverviewMode = enabled
+        Toast.makeText(this, if (enabled) "Desktop mode enabled" else "Mobile mode enabled", Toast.LENGTH_SHORT).show()
+        web.reload()
+    }
+
     private fun dp(v:Int)=(v*resources.displayMetrics.density).toInt()
     override fun onSaveInstanceState(outState: Bundle) { web.saveState(outState); super.onSaveInstanceState(outState) }
     @Deprecated("Deprecated in Android")
