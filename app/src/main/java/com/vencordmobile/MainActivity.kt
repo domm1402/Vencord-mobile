@@ -90,7 +90,7 @@ class MainActivity : Activity() {
                 setStroke(dp(2), Color.argb(110, 255, 255, 255))
             }
             elevation = dp(9).toFloat()
-            setOnClickListener { showHome() }
+            setOnClickListener { showNexoraHub() }
         }
         val lp = FrameLayout.LayoutParams(dp(54), dp(54), Gravity.BOTTOM or Gravity.END)
         lp.setMargins(dp(16), dp(16), dp(18), dp(24))
@@ -132,6 +132,145 @@ class MainActivity : Activity() {
             Toast.makeText(this, "Vencord bundle is missing. Build again with the Vencord bundle step. ${'$'}{e.message}", Toast.LENGTH_LONG).show()
         }
     }
+    private fun showNexoraHub() {
+        val dialog = android.app.Dialog(this)
+        val outer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.rgb(10, 12, 20))
+        }
+        val scroll = ScrollView(this)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(22), dp(20), dp(22))
+        }
+        fun label(text: String, size: Float, color: Int, bold: Boolean = false): TextView =
+            TextView(this).apply {
+                this.text = text; textSize = size; setTextColor(color)
+                if (bold) typeface = Typeface.DEFAULT_BOLD
+            }
+        val hero = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(20), dp(20), dp(20))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(80, 56, 190), Color.rgb(23, 116, 150), Color.rgb(13, 22, 43))).apply { cornerRadius = dp(25).toFloat() }
+        }
+        val brandRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val mark = TextView(this).apply {
+            text = "N"; textSize = 28f; typeface = Typeface.DEFAULT_BOLD; gravity = Gravity.CENTER; setTextColor(Color.WHITE)
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.argb(55,255,255,255)); setStroke(dp(1),Color.argb(130,255,255,255)) }
+        }
+        brandRow.addView(mark, LinearLayout.LayoutParams(dp(54),dp(54)))
+        val brandText = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(13),0,0,0) }
+        brandText.addView(label("NEXORA",22f,Color.WHITE,true))
+        brandText.addView(label("YOUR DISCORD, REIMAGINED",9f,Color.rgb(219,224,255),true))
+        brandRow.addView(brandText)
+        hero.addView(brandRow)
+        hero.addView(label("Your space. Your rules.",23f,Color.WHITE,true).apply { setPadding(0,dp(22),0,dp(5)) })
+        hero.addView(label("A faster control deck for the way you use Discord.",13f,Color.rgb(224,230,255)))
+        val pageStatus = label("CONNECTED EXPERIENCE  •  DISCORD WEB",10f,Color.rgb(191,220,255),true).apply { setPadding(0,dp(17),0,0) }
+        hero.addView(pageStatus)
+        content.addView(hero)
+        val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0,dp(16),0,dp(12)) }
+        val sections = listOf("Home","Appearance","Tools","Extensions")
+        val sectionBody = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        fun tile(title: String, subtitle: String, action: () -> Unit) {
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL; setPadding(dp(15),dp(14),dp(15),dp(14))
+                background = GradientDrawable().apply { setColor(Color.rgb(25,29,43)); cornerRadius = dp(17).toFloat(); setStroke(dp(1),Color.rgb(43,52,76)) }
+                isClickable = true; isFocusable = true; setOnClickListener { dialog.dismiss(); action() }
+            }
+            card.addView(label(title,15f,Color.WHITE,true))
+            card.addView(label(subtitle,11f,Color.rgb(166,177,202)).apply { setPadding(0,dp(5),0,0) })
+            val lp = LinearLayout.LayoutParams(-1,-2); lp.bottomMargin = dp(9); sectionBody.addView(card,lp)
+        }
+        fun render(section: String) {
+            sectionBody.removeAllViews()
+            when(section) {
+                "Home" -> {
+                    tile("Continue to Discord","Close this deck and return to your current server or DM") { }
+                    tile("My profile studio","Personalise your local profile preview") { showProfileStudio() }
+                    tile("Quick navigation","Jump to Discord settings, DMs and discovery") { showQuickNavigation() }
+                    tile("Bookmarks","Open your saved pages") { showBookmarks() }
+                    tile("What's inside Nexora","Themes, tools, plugins and customisation in one place") { showNexoraAbout() }
+                }
+                "Appearance" -> {
+                    tile("Theme gallery","Eleven colour themes and layout controls") { showThemes() }
+                    tile("Accent & typography","Custom colours and font choices") { showTypographySettings() }
+                    tile("Style presets","One-tap chat layout presets") { showStylePresets() }
+                    tile("Custom CSS","Build your own visual style") { editCss() }
+                    tile("Profile cosmetics","Local-only profile decoration preview") { cosmeticLab() }
+                }
+                "Tools" -> {
+                    tile("Message studio","Format messages before copying them") { showMessageStudio() }
+                    tile("Snippet vault","Save reusable replies and templates") { showSnippetVault() }
+                    tile("Emoji library","Browse and copy categorised emoji") { showEmojiLibrary() }
+                    tile("Developer toolbox","JSON, Base64, URLs and Discord ID tools") { showDeveloperToolbox() }
+                    tile("Rich Presence","Configure and preview activity data") { showRPC() }
+                    tile("Browser tools","Reader mode, zoom, find and reload") { showBrowserTools() }
+                    tile("Backup & restore","Export your Nexora settings") { backup() }
+                }
+                "Extensions" -> {
+                    tile("Plugin manager","Install and manage extensions") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
+                    tile("Feature library","Toggle interface enhancements") { showFeatureLibrary() }
+                    tile("Chat tools","Reactions, translation and message helpers") { showChatTools() }
+                    tile("About compatibility","Understand what works and what is experimental") { showNexoraAbout() }
+                }
+            }
+        }
+        sections.forEach { section ->
+            val tab = Button(this).apply {
+                text = section; textSize = 10f; isAllCaps = false
+                setTextColor(Color.WHITE)
+                background = GradientDrawable().apply { setColor(Color.rgb(29,35,53)); cornerRadius = dp(12).toFloat() }
+                setOnClickListener { render(section); pageStatus.text = "NEXORA  •  " + section.uppercase() }
+            }
+            val lp = LinearLayout.LayoutParams(0,dp(43),1f); lp.setMargins(dp(2),0,dp(2),0); tabs.addView(tab,lp)
+        }
+        content.addView(tabs)
+        sectionBody.setPadding(0,dp(3),0,0)
+        content.addView(sectionBody)
+        content.addView(label("NEXORA IS AN INDEPENDENT CLIENT SHELL. DISCORD ACCOUNT FEATURES REMAIN SUBJECT TO DISCORD.",9f,Color.rgb(111,123,150)).apply { setPadding(0,dp(15),0,0) })
+        render("Home")
+        scroll.addView(content)
+        outer.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+        val footer = Button(this).apply {
+            text = "BACK TO DISCORD"; isAllCaps = false; textSize = 12f; setTextColor(Color.WHITE)
+            background = GradientDrawable().apply { setColor(Color.rgb(91,75,210)); cornerRadius = dp(15).toFloat() }
+            setOnClickListener { dialog.dismiss() }
+        }
+        val footerWrap = LinearLayout(this).apply { setPadding(dp(18),dp(8),dp(18),dp(15)); addView(footer,LinearLayout.LayoutParams(-1,dp(48))) }
+        outer.addView(footerWrap)
+        dialog.setContentView(outer)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
+        dialog.window?.setLayout(-1,-1)
+        dialog.window?.setStatusBarColor(Color.rgb(10,12,20))
+        dialog.window?.setNavigationBarColor(Color.rgb(10,12,20))
+    }
+
+    private fun showBrowserTools() {
+        val opts = arrayOf("Back","Forward","Find on page","Copy page URL","Desktop / mobile mode","Toggle reader mode","Page zoom","Reload","Clear cache")
+        AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i ->
+            when(i) {
+                0 -> if(web.canGoBack()) web.goBack()
+                1 -> if(web.canGoForward()) web.goForward()
+                2 -> findOnPage()
+                3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }
+                4 -> toggleDesktopMode()
+                5 -> toggleReaderMode()
+                6 -> showPageZoom()
+                7 -> web.reload()
+                8 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show()
+            }
+        }.show()
+    }
+
+    private fun showNexoraAbout() {
+        AlertDialog.Builder(this).setTitle("NEXORA")
+            .setMessage("A redesigned control deck for your Discord experience. Nexora is an independent Android client shell, not an official Discord product. It does not grant Nitro or badges, and live Rich Presence remains dependent on supported Discord integration.")
+            .setPositiveButton("Got it",null).show()
+    }
+
     private fun showHome() {
         val panel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
