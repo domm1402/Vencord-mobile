@@ -256,6 +256,7 @@ class MainActivity : Activity() {
 
     private fun showRPC() {
         val fields = linkedMapOf<String, EditText>()
+        lateinit var form: LinearLayout
         fun field(key: String, label: String, hint: String = "", type: Int = InputType.TYPE_CLASS_TEXT): EditText {
             val input = EditText(this).apply {
                 setText(prefs.getString("rpc_$key", ""))
@@ -283,7 +284,7 @@ class MainActivity : Activity() {
             form.addView(input, LinearLayout.LayoutParams(-1, dp(48)))
             return input
         }
-        val form = LinearLayout(this).apply {
+        form = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(10), dp(16), dp(18))
             background = GradientDrawable().apply {
