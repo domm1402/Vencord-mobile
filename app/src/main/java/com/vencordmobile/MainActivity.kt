@@ -188,7 +188,7 @@ class MainActivity : Activity() {
         val activityName = EditText(this).apply { hint = "Activity name"; setText(prefs.getString("rpc_name", "Playing a game")) }
         val activityDetails = EditText(this).apply { hint = "Activity details"; setText(prefs.getString("rpc_details", "Custom activity")) }
         val activityState = EditText(this).apply { hint = "Activity state"; setText(prefs.getString("rpc_state", "Available")) }
-        val enabled = CheckBox(this).apply { text = "Show local cosmetics and activity on my own profile panel"; isChecked = prefs.getBoolean("profile_overlay", true) }
+        val enabled = CheckBox(this).apply { text = "Show local cosmetics and activity on my own profile panel"; isChecked = prefs.getBoolean("profile_overlay", false) }
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(TextView(this@MainActivity).apply { text = "Badge labels (comma separated)"; setTextColor(Color.LTGRAY) }); addView(badges); addView(TextView(this@MainActivity).apply { text = "Local activity display"; setTextColor(Color.LTGRAY); setPadding(0,dp(8),0,0) }); addView(activityName); addView(activityDetails); addView(activityState); addView(enabled) }
         AlertDialog.Builder(this).setTitle("My profile • local cosmetics")
             .setMessage("These decorations are injected only into your own view of Discord. They are not real Discord badges, Nitro or published Rich Presence.")
@@ -201,12 +201,16 @@ class MainActivity : Activity() {
     }
 
     private fun applyProfileEnhancements() {
+        // The previous experimental overlay injected fake badges/activity into
+        // Discord's profile DOM and could land in the wrong container. Remove it.
         if (!::web.isInitialized) return
-        val badges = prefs.getString("profile_badges", "Nitro, Early Supporter") ?: ""
-        val enabled = prefs.getBoolean("profile_overlay", true)
-        val payload = org.json.JSONObject().put("enabled",enabled).put("badges",org.json.JSONArray(badges.split(",").map { it.trim() }.filter { it.isNotBlank() })).put("activity",org.json.JSONObject().put("name",prefs.getString("rpc_name","Playing a game")).put("details",prefs.getString("rpc_details","Custom activity")).put("state",prefs.getString("rpc_state","Available"))).toString()
-        val script = "(function(){const cfg=$payload,id='vcm-profile-local';document.getElementById(id+'-css')?.remove();if(!cfg.enabled){document.getElementById(id)?.remove();return;}const css=document.createElement('style');css.id=id+'-css';css.textContent='#'+id+'{margin:10px 0;padding:10px;border-radius:10px;background:rgba(117,83,220,.16);border:1px solid rgba(164,139,255,.35);color:var(--header-primary,#fff);font-size:12px}#'+id+' .vcm-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}#'+id+' .vcm-badge{padding:3px 7px;border-radius:20px;background:rgba(139,105,255,.24);color:#d8caff;font-weight:700;font-size:10px}#'+id+' .vcm-rpc{font-weight:700}#'+id+' .vcm-muted{opacity:.75;margin-top:2px}';document.head.appendChild(css);const mount=()=>{if(document.getElementById(id))return;const cards=[...document.querySelectorAll('[class*=userPopout],[class*=userProfile],[class*=profilePanel],[role=dialog]')];const own=cards.find(e=>/edit profile|my account|set status/i.test(e.innerText||''));if(!own)return;const box=document.createElement('div');box.id=id;const row=document.createElement('div');row.className='vcm-badges';cfg.badges.forEach(label=>{const b=document.createElement('span');b.className='vcm-badge';b.textContent=label;row.appendChild(b)});box.appendChild(row);if(cfg.activity.name){const t=document.createElement('div');t.className='vcm-rpc';t.textContent='Playing '+cfg.activity.name;box.appendChild(t);[cfg.activity.details,cfg.activity.state].filter(Boolean).forEach(v=>{const x=document.createElement('div');x.className='vcm-muted';x.textContent=v;box.appendChild(x)})}own.appendChild(box)};mount();new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});})();"
-        web.evaluateJavascript(script, null)
+        web.evaluateJavascript("""
+            (function() {
+                document.querySelectorAll('#vcm-profile-local, #vcm-profile-local-css').forEach(function(node) {
+                    node.remove();
+                });
+            })();
+        """.trimIndent(), null)
     }
     private fun cosmeticLab() {
         val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(16), dp(18), dp(16)); background = GradientDrawable().apply { setColor(Color.rgb(43,45,51)); cornerRadius = dp(16).toFloat() } }
