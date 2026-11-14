@@ -245,15 +245,67 @@ class MainActivity : Activity() {
     }
 
     private fun showChatTools() {
-        val options = arrayOf("Quick reaction palette", "Translate selected text", "Compact message spacing", "Hide Nitro promotional panels")
+        val options = arrayOf("Quick reaction palette", "Translate selected text", "Compact message spacing", "Hide Nitro promotional panels", "Format a message", "Create Discord timestamp", "Markdown reference", "Copy selected text")
         AlertDialog.Builder(this).setTitle("Chat tools").setItems(options) { _, index ->
             when(index) {
                 0 -> quickReactionPalette()
                 1 -> translateSelection()
                 2 -> { val enabled = !prefs.getBoolean("compact", false); prefs.edit().putBoolean("compact", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Compact spacing on" else "Compact spacing off", Toast.LENGTH_SHORT).show() }
                 3 -> { val enabled = !prefs.getBoolean("upsells", false); prefs.edit().putBoolean("upsells", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Promotional panels hidden where supported" else "Promotional panels shown", Toast.LENGTH_SHORT).show() }
+                4 -> formatDiscordMessage()
+                5 -> createDiscordTimestamp()
+                6 -> showMarkdownReference()
+                7 -> copySelection()
             }
         }.show()
+    }
+
+    private fun copySelection() {
+        web.evaluateJavascript("window.getSelection().toString()") { result ->
+            try {
+                val selected = org.json.JSONTokener(result).nextValue() as? String ?: ""
+                if(selected.isBlank()) { Toast.makeText(this,"Select text in Discord first",Toast.LENGTH_SHORT).show(); return@evaluateJavascript }
+                val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Discord selection",selected))
+                Toast.makeText(this,"Selected text copied",Toast.LENGTH_SHORT).show()
+            } catch(_:Exception) { Toast.makeText(this,"Could not copy selection",Toast.LENGTH_SHORT).show() }
+        }
+    }
+
+    private fun formatDiscordMessage() {
+        val input = EditText(this).apply { hint = "Write or paste your message"; minLines = 4; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
+        val formats = arrayOf("Bold", "Italic", "Underline", "Strikethrough", "Spoiler", "Inline code", "Code block", "Quote")
+        AlertDialog.Builder(this).setTitle("Message formatter").setView(input).setItems(formats) { _, which ->
+            val value = input.text.toString()
+            if(value.isBlank()) { Toast.makeText(this,"Enter some text first",Toast.LENGTH_SHORT).show(); return@setItems }
+            val formatted = when(which) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__$value__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```\n$value\n```"; else -> value.lines().joinToString("\n") { "> $it" } }
+            val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            cm.setPrimaryClip(android.content.ClipData.newPlainText("Formatted Discord message",formatted))
+            Toast.makeText(this,"Formatted text copied",Toast.LENGTH_SHORT).show()
+        }.setNegativeButton("Cancel",null).show()
+    }
+
+    private fun createDiscordTimestamp() {
+        val calendar = java.util.Calendar.getInstance()
+        android.app.DatePickerDialog(this,{ _, year, month, day ->
+            calendar.set(year,month,day)
+            android.app.TimePickerDialog(this,{ _, hour, minute ->
+                calendar.set(java.util.Calendar.HOUR_OF_DAY,hour); calendar.set(java.util.Calendar.MINUTE,minute); calendar.set(java.util.Calendar.SECOND,0)
+                val epoch = calendar.timeInMillis/1000
+                val formats = arrayOf("Default: <t:$epoch>", "Short time: <t:$epoch:t>", "Long time: <t:$epoch:T>", "Short date: <t:$epoch:d>", "Long date: <t:$epoch:D>", "Date and time: <t:$epoch:f>", "Full date: <t:$epoch:F>", "Relative: <t:$epoch:R>")
+                AlertDialog.Builder(this).setTitle("Copy Discord timestamp").setItems(formats) { _, i ->
+                    val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("Discord timestamp",formats[i].substringAfter(": ")))
+                    Toast.makeText(this,"Timestamp copied",Toast.LENGTH_SHORT).show()
+                }.show()
+            },calendar.get(java.util.Calendar.HOUR_OF_DAY),calendar.get(java.util.Calendar.MINUTE),true).show()
+        },calendar.get(java.util.Calendar.YEAR),calendar.get(java.util.Calendar.MONTH),calendar.get(java.util.Calendar.DAY_OF_MONTH)).show()
+    }
+
+    private fun showMarkdownReference() {
+        AlertDialog.Builder(this).setTitle("Discord Markdown")
+            .setMessage("**bold**\n*italic*\n__underline__\n~~strikethrough~~\n||spoiler||\n`inline code`\n```\ncode block\n```\n> quote\n-# subtext\n[link text](https://example.com)\n<t:UNIX:F> timestamp")
+            .setPositiveButton("Close",null).show()
     }
 
     private fun quickReactionPalette() {
