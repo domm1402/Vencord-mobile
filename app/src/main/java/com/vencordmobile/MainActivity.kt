@@ -1047,7 +1047,7 @@ class MainActivity : Activity() {
     }
 
     private fun applyCustomizations() {
-        val theme = prefs.getInt("theme", 0).coerceIn(0, 6)
+        val theme = prefs.getInt("theme", 0).coerceIn(0, 10)
         val palettes = arrayOf(
             arrayOf("#313338","#2b2d31","#1e1f22","#5865f2","#f2f3f5","#b5bac1"),
             arrayOf("#000000","#080808","#101010","#8b5cf6","#f5f5f5","#a1a1aa"),
