@@ -17,6 +17,7 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private lateinit var root: FrameLayout
     private lateinit var swipe: SwipeRefreshLayout
+    private var mobileUserAgent = ""
     private val prefs by lazy { getSharedPreferences("vcm_prefs", MODE_PRIVATE) }
     private val plugins = listOf("Message Logger (local UI)", "Translator button", "Typing indicator tools", "Custom profile decorations", "Better message spacing", "Quick reactions", "Hide nitro upsells", "Developer tools")
     private val pluginKeys = listOf("logger", "translator", "typing", "decor", "spacing", "quickreact", "upsells", "devtools")
@@ -25,6 +26,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         root = FrameLayout(this)
         web = WebView(this)
+        mobileUserAgent = web.settings.userAgentString.replace("; wv", "")
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.databaseEnabled = true
@@ -197,7 +199,7 @@ class MainActivity : Activity() {
         web.settings.userAgentString = if (enabled) {
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
         } else {
-            WebView(this).settings.userAgentString.replace("; wv", "")
+            mobileUserAgent
         }
         web.settings.useWideViewPort = enabled
         web.settings.loadWithOverviewMode = enabled
