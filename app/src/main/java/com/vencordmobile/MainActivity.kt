@@ -188,12 +188,32 @@ class MainActivity : Activity() {
     }
 
     private fun showRPC() {
-        val name = EditText(this).apply { setText(prefs.getString("rpc_name", "Playing a game")); hint = "Activity name" }
+        val app = EditText(this).apply { setText(prefs.getString("rpc_name", "Playing a game")); hint = "Activity name" }
         val details = EditText(this).apply { setText(prefs.getString("rpc_details", "Custom activity")); hint = "Details" }
-        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(name); addView(details) }
-        AlertDialog.Builder(this).setTitle("Rich Presence • preview settings").setView(box)
-            .setPositiveButton("Save") { _, _ -> prefs.edit().putString("rpc_name", name.text.toString()).putString("rpc_details", details.text.toString()).apply(); Toast.makeText(this, "Saved locally. Android WebView cannot publish Discord Rich Presence.", Toast.LENGTH_LONG).show() }
-            .setNegativeButton("Cancel", null).show()
+        val state = EditText(this).apply { setText(prefs.getString("rpc_state", "Available")); hint = "State" }
+        val large = EditText(this).apply { setText(prefs.getString("rpc_large", "")); hint = "Large image key (optional)" }
+        val small = EditText(this).apply { setText(prefs.getString("rpc_small", "")); hint = "Small image key (optional)" }
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(app); addView(details); addView(state); addView(large); addView(small) }
+        AlertDialog.Builder(this).setTitle("Rich Presence • activity builder").setMessage("Build and preview an activity configuration. Android Discord does not expose desktop RPC, so this cannot publish a live status by itself.").setView(box)
+            .setPositiveButton("Save & preview") { _, _ ->
+                prefs.edit().putString("rpc_name",app.text.toString()).putString("rpc_details",details.text.toString()).putString("rpc_state",state.text.toString()).putString("rpc_large",large.text.toString()).putString("rpc_small",small.text.toString()).apply()
+                showRPCPreview()
+            }
+            .setNeutralButton("Copy JSON") { _, _ ->
+                val json = org.json.JSONObject().put("name",app.text.toString()).put("details",details.text.toString()).put("state",state.text.toString()).put("largeImageKey",large.text.toString()).put("smallImageKey",small.text.toString()).toString(2)
+                val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Rich Presence config",json))
+                Toast.makeText(this,"Activity JSON copied",Toast.LENGTH_SHORT).show()
+            }.setNegativeButton("Cancel",null).show()
+    }
+
+    private fun showRPCPreview() {
+        val card = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18),dp(16),dp(18),dp(16)); background = GradientDrawable().apply { setColor(Color.rgb(43,45,51)); cornerRadius = dp(14).toFloat() } }
+        card.addView(TextView(this).apply { text = "PLAYING A GAME"; textSize = 10f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(177,160,255)) })
+        card.addView(TextView(this).apply { text = prefs.getString("rpc_name","Playing a game"); textSize = 20f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE); setPadding(0,dp(8),0,dp(4)) })
+        card.addView(TextView(this).apply { text = prefs.getString("rpc_details",""); textSize = 13f; setTextColor(Color.LTGRAY) })
+        card.addView(TextView(this).apply { text = prefs.getString("rpc_state",""); textSize = 12f; setTextColor(Color.LTGRAY); setPadding(0,dp(3),0,0) })
+        AlertDialog.Builder(this).setTitle("Activity preview").setView(card).setPositiveButton("Edit") { _, _ -> showRPC() }.setNegativeButton("Close",null).show()
     }
 
     private fun showChatTools() {
