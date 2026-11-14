@@ -2,13 +2,17 @@ package com.vencordmobile
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.DownloadManager
 import android.os.Bundle
+import android.os.Environment
 import android.text.InputType
 import android.view.Gravity
 import android.widget.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebChromeClient
+import android.webkit.CookieManager
+import android.webkit.URLUtil
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
@@ -43,6 +47,26 @@ class MainActivity : Activity() {
             override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); runPlugins() }
         }
         web.webChromeClient = WebChromeClient()
+        web.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            try {
+                val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
+                val request = DownloadManager.Request(android.net.Uri.parse(url)).apply {
+                    setMimeType(mimeType)
+                    addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url) ?: "")
+                    addRequestHeader("User-Agent", userAgent)
+                    setTitle(filename)
+                    setDescription("Downloading from Discord")
+                    setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+                    setAllowedOverMetered(true)
+                    setAllowedOverRoaming(false)
+                }
+                (getSystemService(DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
+                Toast.makeText(this, "Download started: $filename", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this, "Could not start download: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
         swipe = SwipeRefreshLayout(this).apply {
             setOnRefreshListener { web.reload() }
             setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light)
