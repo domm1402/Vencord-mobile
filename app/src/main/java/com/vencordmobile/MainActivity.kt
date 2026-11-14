@@ -281,7 +281,7 @@ class MainActivity : Activity() {
             .setPositiveButton("Copy formatted text") { _, _ ->
                 val value = input.text.toString()
                 if(value.isBlank()) { Toast.makeText(this,"Enter some text first",Toast.LENGTH_SHORT).show(); return@setPositiveButton }
-                val formatted = when(picker.selectedItemPosition) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__$value__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```\n$value\n```"; else -> value.lines().joinToString("\n") { "> $it" } }
+                val formatted = when(picker.selectedItemPosition) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__${value}__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```\n$value\n```"; else -> value.lines().joinToString("\n") { "> $it" } }
                 val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("Formatted Discord message",formatted))
                 Toast.makeText(this,"Formatted text copied",Toast.LENGTH_SHORT).show()
