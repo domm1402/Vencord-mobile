@@ -168,7 +168,7 @@ class MainActivity : Activity() {
     }
 
     private fun showThemes() {
-        val themes = arrayOf("Default Discord", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange")
+        val themes = arrayOf("Discord modern dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange")
         val current = prefs.getInt("theme", 0)
         AlertDialog.Builder(this).setTitle("Theme")
             .setSingleChoiceItems(themes, current) { d, which -> prefs.edit().putInt("theme", which).apply(); applyCustomizations(); d.dismiss() }
@@ -276,17 +276,19 @@ class MainActivity : Activity() {
 
     private fun applyCustomizations() {
         val theme = prefs.getInt("theme", 0)
-        val bg = arrayOf("#36393f","#000000","#120d20","#071827","#07170f","#241007")[theme.coerceIn(0,5)]
+        val bg = arrayOf("#313338","#000000","#120d20","#071827","#07170f","#241007")[theme.coerceIn(0,5)]
         val compact = prefs.getBoolean("compact", false)
         val noavatars = prefs.getBoolean("noavatars", false)
         val cards = prefs.getBoolean("cards", false)
         val bigtext = prefs.getBoolean("bigtext", false)
         val custom = prefs.getString("css", "") ?: ""
+        val hideUpsells = prefs.getBoolean("upsells", false)
         val css = "html,body,#app-mount{background:$bg!important;}" +
             (if(compact) "[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important;} [class*=messageContent]{line-height:1.2!important;}" else "") +
             (if(noavatars) "[class*=avatar]{display:none!important;}" else "") +
             (if(cards) "[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.025)!important;}" else "") +
-            (if(bigtext) "[class*=messageContent]{font-size:16px!important;}" else "") + custom
+            (if(bigtext) "[class*=messageContent]{font-size:16px!important;}" else "") +
+            (if(hideUpsells) "[class*=premiumPromo],[class*=nitroTopDivider],[class*=upsell],[class*=premiumUpsell]{display:none!important;}" else "") + custom
         val escaped = css.replace("\\", "\\\\").replace("'", "\\'").replace("\n"," ")
         web.evaluateJavascript("(function(){var s=document.getElementById('vcm-style');if(!s){s=document.createElement('style');s.id='vcm-style';document.head.appendChild(s);}s.textContent='$escaped';})();", null)
     }
