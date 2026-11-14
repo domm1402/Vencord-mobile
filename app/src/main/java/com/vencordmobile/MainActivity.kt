@@ -48,7 +48,7 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this).setTitle("Vencord Mobile • Control Centre")
             .setItems(sections) { _, which ->
                 when(which) {
-                    0 -> showPlugins()
+                    0 -> PluginManager(this).open()
                     1 -> showThemes()
                     2 -> editCss()
                     3 -> showRPC()
