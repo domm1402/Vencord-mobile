@@ -167,6 +167,8 @@ class MainActivity : Activity() {
         group("Utilities")
         item("Rich Presence", "Configure Discord Rich Presence") { showRPC() }
         item("Chat tools", "Quick reactions, hide upsells and compact chat") { showChatTools() }
+        item("Message studio", "Format messages, manage reusable snippets and copy templates") { showMessageStudio() }
+        item("Developer toolbox", "Format JSON, encode text, decode Base64 and inspect Discord IDs") { showDeveloperToolbox() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
             val opts = arrayOf("Back", "Forward", "Find on page", "Copy page URL", "Desktop / mobile mode", "Reload", "Clear cache")
@@ -622,6 +624,120 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    private fun showMessageStudio() {
+        val input = EditText(this).apply {
+            hint = "Write or paste text here"
+            minLines = 5
+            gravity = Gravity.TOP
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            setText(prefs.getString("message_studio_draft", ""))
+        }
+        val actions = arrayOf("Bold", "Italic", "Underline", "Strikethrough", "Spoiler", "Inline code", "Code block", "Quote", "Bullet list", "Numbered list", "Heading")
+        fun wrap(before: String, after: String = before) {
+            val text = input.text.toString()
+            val a = input.selectionStart.coerceAtLeast(0).coerceAtMost(text.length)
+            val b = input.selectionEnd.coerceAtLeast(a).coerceAtMost(text.length)
+            val selected = text.substring(a, b)
+            val result = text.substring(0, a) + before + selected + after + text.substring(b)
+            input.setText(result)
+            input.setSelection((a + before.length + selected.length + after.length).coerceAtMost(result.length))
+        }
+        val buttons = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val rows = actions.toList().chunked(3)
+        rows.forEach { rowItems ->
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            rowItems.forEach { label ->
+                val button = Button(this@MainActivity).apply {
+                    text = label
+                    textSize = 10f
+                    setOnClickListener {
+                        when(label) {
+                            "Bold" -> wrap("**")
+                            "Italic" -> wrap("*")
+                            "Underline" -> wrap("__")
+                            "Strikethrough" -> wrap("~~")
+                            "Spoiler" -> wrap("||")
+                            "Inline code" -> wrap("`")
+                            "Code block" -> wrap("```\n", "\n```")
+                            "Quote" -> wrap("> ", "")
+                            "Bullet list" -> wrap("- ", "")
+                            "Numbered list" -> wrap("1. ", "")
+                            "Heading" -> wrap("# ", "")
+                        }
+                    }
+                }
+                row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f))
+            }
+            buttons.addView(row)
+        }
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(12), dp(8), dp(12), 0)
+            addView(buttons)
+            addView(input, LinearLayout.LayoutParams(-1, dp(180)))
+        }
+        AlertDialog.Builder(this).setTitle("Message studio")
+            .setMessage("Format your draft, then copy it into Discord. Nothing is sent automatically.")
+            .setView(root)
+            .setPositiveButton("Copy") { _, _ ->
+                val value = input.text.toString()
+                val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Discord message", value))
+                prefs.edit().putString("message_studio_draft", value).apply()
+                Toast.makeText(this, "Formatted message copied", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Save draft") { _, _ -> prefs.edit().putString("message_studio_draft", input.text.toString()).apply(); Toast.makeText(this, "Draft saved locally", Toast.LENGTH_SHORT).show() }
+            .setNegativeButton("Close", null).show()
+    }
+
+    private fun showDeveloperToolbox() {
+        val tools = arrayOf("Format / validate JSON", "URL encode text", "URL decode text", "Base64 encode", "Base64 decode", "Inspect Discord Snowflake ID", "Count characters and words")
+        AlertDialog.Builder(this).setTitle("Developer toolbox").setItems(tools) { _, index ->
+            val input = EditText(this).apply {
+                hint = when(index) {
+                    0 -> "Paste JSON"
+                    5 -> "Paste a Discord ID"
+                    else -> "Enter text"
+                }
+                minLines = if(index == 0) 5 else 2
+                gravity = Gravity.TOP
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            }
+            AlertDialog.Builder(this).setTitle(tools[index]).setView(input)
+                .setPositiveButton("Run") { _, _ ->
+                    val source = input.text.toString()
+                    val result = try {
+                        when(index) {
+                            0 -> org.json.JSONTokener(source).nextValue().let { value ->
+                                when(value) {
+                                    is org.json.JSONObject -> value.toString(2)
+                                    is org.json.JSONArray -> value.toString(2)
+                                    else -> value.toString()
+                                }
+                            }
+                            1 -> java.net.URLEncoder.encode(source, "UTF-8")
+                            2 -> java.net.URLDecoder.decode(source, "UTF-8")
+                            3 -> android.util.Base64.encodeToString(source.toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
+                            4 -> String(android.util.Base64.decode(source, android.util.Base64.DEFAULT), Charsets.UTF_8)
+                            5 -> {
+                                val id = source.trim().toLong()
+                                val millis = (id shr 22) + 1420070400000L
+                                "Created: " + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(millis)) + "\nTimestamp: " + millis
+                            }
+                            else -> "Characters: " + source.length + "\nWords: " + source.trim().split(Regex("\\s+")).count { it.isNotEmpty() } + "\nLines: " + if(source.isEmpty()) 0 else source.count { it == '\\n' } + 1
+                        }
+                    } catch(e: Exception) { "Error: " + (e.message ?: "Invalid input") }
+                    val output = EditText(this).apply { setText(result); minLines = 4; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
+                    AlertDialog.Builder(this).setTitle("Result").setView(output)
+                        .setPositiveButton("Copy") { _, _ ->
+                            val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText("Tool result", output.text.toString()))
+                            Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
+                        }.setNegativeButton("Close", null).show()
+                }.setNegativeButton("Cancel", null).show()
+        }.show()
     }
 
     private fun showChatTools() {
