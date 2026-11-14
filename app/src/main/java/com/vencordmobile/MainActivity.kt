@@ -44,7 +44,7 @@ class MainActivity : Activity() {
         swipe = SwipeRefreshLayout(this).apply {
             setOnRefreshListener { web.reload() }
             setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light)
-            addView(web, SwipeRefreshLayout.LayoutParams(-1, -1))
+            addView(web, FrameLayout.LayoutParams(-1, -1))
         }
         root.addView(swipe, FrameLayout.LayoutParams(-1, -1))
         val menu = Button(this).apply {
