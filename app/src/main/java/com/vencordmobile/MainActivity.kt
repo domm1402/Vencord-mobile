@@ -256,10 +256,42 @@ class MainActivity : Activity() {
     }
 
     private fun backup() {
-        val all = prefs.all.toString()
-        val edit = EditText(this).apply { setText(all); minLines = 5; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
-        AlertDialog.Builder(this).setTitle("Settings snapshot").setMessage("Copy this local settings snapshot for backup:")
-            .setView(edit).setPositiveButton("Copy") { _, _ -> val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Vencord Mobile settings", edit.text)); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }.setNegativeButton("Close",null).show()
+        val snapshot = org.json.JSONObject()
+        val values = org.json.JSONObject()
+        for ((key, value) in prefs.all) {
+            val type = when(value) { is Boolean -> "boolean"; is Int -> "int"; is Long -> "long"; is Float -> "float"; else -> "string" }
+            values.put(key, org.json.JSONObject().put("type",type).put("value",value.toString()))
+        }
+        snapshot.put("format","vencord-mobile-settings").put("version",1).put("preferences",values)
+        val editor = EditText(this).apply { setText(snapshot.toString(2)); minLines=8; gravity=Gravity.TOP; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
+        AlertDialog.Builder(this).setTitle("Backup & restore")
+            .setMessage("Copy this JSON to back up your settings, or paste a previous Vencord Mobile backup and choose Restore.")
+            .setView(editor)
+            .setPositiveButton("Copy backup") { _, _ ->
+                val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Vencord Mobile backup",editor.text.toString()))
+                Toast.makeText(this,"Backup copied",Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Restore") { _, _ ->
+                try {
+                    val root=org.json.JSONObject(editor.text.toString())
+                    require(root.optString("format")=="vencord-mobile-settings") { "This is not a Vencord Mobile backup" }
+                    val values=root.getJSONObject("preferences")
+                    val out=prefs.edit()
+                    val keys=values.keys()
+                    while(keys.hasNext()) {
+                        val key=keys.next(); val item=values.getJSONObject(key); val value=item.optString("value");
+                        when(item.optString("type")) {
+                            "boolean" -> out.putBoolean(key,value.toBoolean())
+                            "int" -> out.putInt(key,value.toInt())
+                            "long" -> out.putLong(key,value.toLong())
+                            "float" -> out.putFloat(key,value.toFloat())
+                            else -> out.putString(key,value)
+                        }
+                    }
+                    out.apply(); applyCustomizations(); Toast.makeText(this,"Settings restored",Toast.LENGTH_LONG).show()
+                } catch(e:Exception) { AlertDialog.Builder(this).setTitle("Restore failed").setMessage(e.message ?: "Invalid backup").setPositiveButton("OK",null).show() }
+            }.setNegativeButton("Close",null).show()
     }
 
     private fun runPlugins() {
