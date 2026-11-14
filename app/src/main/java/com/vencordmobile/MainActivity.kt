@@ -242,7 +242,7 @@ class MainActivity : Activity() {
     }
 
     private fun showThemes() {
-        val themes = arrayOf("Discord blurple dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange", "Discord light")
+        val themes = arrayOf("Discord blurple dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange", "Discord light", "Graphite", "Rose", "Crimson", "Mint")
         val current = prefs.getInt("theme", 0).coerceIn(0, themes.lastIndex)
         AlertDialog.Builder(this).setTitle("Colour theme")
             .setSingleChoiceItems(themes, current) { d, which -> prefs.edit().putInt("theme", which).apply(); applyCustomizations(); d.dismiss() }
@@ -1055,7 +1055,11 @@ class MainActivity : Activity() {
             arrayOf("#10202d","#162a3a","#0b1722","#38bdf8","#e5f4ff","#a8c9df"),
             arrayOf("#12231b","#1a3025","#0b1710","#34d399","#e8fff0","#a9d7b8"),
             arrayOf("#2a1b14","#38251b","#1d120d","#fb923c","#fff2e8","#e7b99b"),
-            arrayOf("#ffffff","#f2f3f5","#e3e5e8","#5865f2","#232428","#5c5e66")
+            arrayOf("#ffffff","#f2f3f5","#e3e5e8","#5865f2","#232428","#5c5e66"),
+            arrayOf("#20242b","#292e38","#171a20","#9ca3af","#f3f4f6","#aab2c0"),
+            arrayOf("#271b24","#35232f","#1b1119","#f472b6","#fff1f7","#d6a8c0"),
+            arrayOf("#2b1719","#3a2023","#1c1012","#fb7185","#fff1f2","#e6a8ad"),
+            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0")
         )
         val p = palettes[theme]
         val rules = StringBuilder()
