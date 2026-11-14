@@ -8,16 +8,18 @@ import org.json.JSONArray
 
 class PluginManager(private val activity: Activity, private val openFeature: (Int) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
-    private val features = arrayOf("Rich Presence editor (local preview)", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Privacy controls", "Install / manage JS plugins")
+    private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview")
     fun open() {
-        AlertDialog.Builder(activity).setTitle("Vencord Mobile • Features")
+        val info = TextView(activity).apply {
+            text = "Manage local add-ons and interface tools. Plugins downloaded from URLs execute inside your signed-in Discord page. Only install code you trust. Desktop Vencord, Revenge and Aliucord packages are not directly compatible."
+            textSize = 13f
+            setPadding(24, 18, 24, 12)
+        }
+        AlertDialog.Builder(activity).setTitle("Vencord Mobile • Extensions")
             .setItems(features) { _, index -> openFeature(index) }
             .setNeutralButton("Plugin repositories") { _, _ -> repositories() }
-            .setNegativeButton("Compatibility") { _, _ ->
-                AlertDialog.Builder(activity).setTitle("Plugin compatibility")
-                    .setMessage("Vencord, Revenge and Aliucord have different plugin APIs and runtimes. This app cannot directly run their plugins. This menu opens Vencord Mobile's own features; repository URLs are saved for reference only and are not downloaded or executed. Rich Presence is a local preview/configuration, not a Discord status.")
-                    .setPositiveButton("OK", null).show()
-            }.show()
+            .setNegativeButton("Compatibility", null)
+            .setView(info).show()
     }
     private fun repositories() {
         val arr = try { JSONArray(prefs.getString("plugin_repos", "[]")) } catch (_: Exception) { JSONArray() }
