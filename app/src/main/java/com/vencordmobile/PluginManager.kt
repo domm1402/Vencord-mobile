@@ -14,16 +14,11 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
     private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview")
     fun open() {
-        val info = TextView(activity).apply {
-            text = "Manage local add-ons and interface tools. Plugins downloaded from URLs execute inside your signed-in Discord page. Only install code you trust. Desktop Vencord, Revenge and Aliucord packages are not directly compatible."
-            textSize = 13f
-            setPadding(24, 18, 24, 12)
-        }
         AlertDialog.Builder(activity).setTitle("Vencord Mobile • Extensions")
+            .setMessage("Manage local add-ons and interface tools. Downloaded plugins execute inside your signed-in Discord page and may access page data. Only install code you trust. Desktop Vencord, Revenge and Aliucord packages are not directly compatible.")
             .setItems(features) { _, index -> openFeature(index) }
             .setNeutralButton("Plugin repositories") { _, _ -> repositories() }
-            .setNegativeButton("Compatibility", null)
-            .setView(info).show()
+            .setNegativeButton("Close", null).show()
     }
     private fun repositories() {
         val saved = try { JSONArray(prefs.getString("plugin_repos", "[]")) } catch (_: Exception) { JSONArray() }
