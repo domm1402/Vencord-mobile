@@ -7,6 +7,9 @@ import android.view.Gravity
 import android.widget.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.concurrent.thread
 
 class CustomPlugins(private val activity: Activity, private val onChanged: (JSONArray) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
@@ -15,15 +18,53 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     fun open() {
         val a = load()
         val names = Array(a.length()) { i -> val p=a.optJSONObject(i); (if(p?.optBoolean("enabled",false)==true) "✓ " else "○ ")+(p?.optString("name","Plugin") ?: "Plugin") }
-        AlertDialog.Builder(activity).setTitle("JavaScript plugins • experimental")
+        AlertDialog.Builder(activity).setTitle("Plugins")
             .setItems(names) { _, i -> edit(a, i) }
-            .setPositiveButton("Add plugin") { _, _ -> edit(a, -1) }
-            .setNeutralButton("Enable / disable") { _, _ -> toggle(a) }
+            .setPositiveButton("Install from URL") { _, _ -> installUrl(a) }
+            .setNeutralButton("Add manually") { _, _ -> edit(a, -1) }
             .setNegativeButton("Security info") { _, _ ->
                 AlertDialog.Builder(activity).setTitle("Plugin security")
-                    .setMessage("Plugins run JavaScript inside your logged-in Discord WebView and can access page data and act as you. Only install code you trust. These are Vencord Mobile scripts, not automatically compatible Vencord/Revenge/Aliucord plugins.")
+                    .setMessage("Plugins execute JavaScript inside your logged-in Discord page and can access your account session/data. Only install sources you trust. This loader accepts direct JavaScript files or GitHub links to a .js file, not native Vencord/Revenge plugin packages.")
                     .setPositiveButton("I understand", null).show()
             }.show()
+    }
+    private fun installUrl(a: JSONArray) {
+        val urlBox=EditText(activity).apply { hint="GitHub .js URL or raw.githubusercontent.com URL"; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI }
+        AlertDialog.Builder(activity).setTitle("Install plugin from URL").setMessage("Paste a direct JavaScript file link (GitHub file links ending in .js are supported).")
+            .setView(urlBox).setPositiveButton("Download") { _, _ ->
+                val entered=urlBox.text.toString().trim()
+                if(entered.isBlank()){ Toast.makeText(activity,"Paste a URL",Toast.LENGTH_SHORT).show(); return@setPositiveButton }
+                Toast.makeText(activity,"Downloading plugin…",Toast.LENGTH_SHORT).show()
+                thread {
+                    try {
+                        val raw=toRawUrl(entered)
+                        val conn=(URL(raw).openConnection() as HttpURLConnection).apply { connectTimeout=15000; readTimeout=20000; setRequestProperty("User-Agent","VencordMobile-PluginLoader") }
+                        val status=conn.responseCode
+                        if(status !in 200..299) throw Exception("HTTP $status")
+                        val code=conn.inputStream.bufferedReader().use { it.readText() }
+                        conn.disconnect()
+                        if(code.isBlank() || code.length>500000) throw Exception("Empty file or larger than 500 KB")
+                        val name=raw.substringAfterLast('/').substringBefore('?').removeSuffix(".js").ifBlank{"Imported plugin"}
+                        activity.runOnUiThread {
+                            a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
+                            save(a)
+                            Toast.makeText(activity,"Installed: $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                        }
+                    } catch(e:Exception) {
+                        activity.runOnUiThread { AlertDialog.Builder(activity).setTitle("Plugin download failed").setMessage(e.message ?: "Could not download this URL. Use a direct public .js file link.").setPositiveButton("OK",null).show() }
+                    }
+                }
+            }.setNegativeButton("Cancel",null).show()
+    }
+    private fun toRawUrl(input:String):String {
+        require(input.startsWith("https://")) { "Only HTTPS URLs are allowed" }
+        if(input.contains("github.com/") && input.contains("/blob/")) {
+            val parts=input.removePrefix("https://github.com/").split("/")
+            require(parts.size>=5) { "Use a GitHub link to a specific .js file" }
+            return "https://raw.githubusercontent.com/${parts[0]}/${parts[1]}/${parts[3]}/"+parts.drop(4).joinToString("/")
+        }
+        require(input.contains("raw.githubusercontent.com/") || input.endsWith(".js")) { "Use a direct .js URL or GitHub file link" }
+        return input
     }
     private fun edit(a: JSONArray, index: Int) {
         val old = if(index>=0) a.optJSONObject(index) ?: JSONObject() else JSONObject()
@@ -38,12 +79,5 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
             }.setNegativeButton("Cancel",null)
         if(index>=0) builder.setNeutralButton("Delete") { _,_ -> a.remove(index); save(a) }
         builder.show()
-    }
-    private fun toggle(a:JSONArray) {
-        if(a.length()==0){ Toast.makeText(activity,"Add a plugin first",Toast.LENGTH_SHORT).show(); return }
-        val labels=Array(a.length()){i->a.optJSONObject(i)?.optString("name","Plugin") ?: "Plugin"}
-        val checked=BooleanArray(a.length()){i->a.optJSONObject(i)?.optBoolean("enabled",false)==true}
-        AlertDialog.Builder(activity).setTitle("Enabled plugins").setMultiChoiceItems(labels,checked){_,i,on->a.optJSONObject(i)?.put("enabled",on)}
-            .setPositiveButton("Save"){_,_->save(a)}.show()
     }
 }
