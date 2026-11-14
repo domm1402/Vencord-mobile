@@ -165,6 +165,7 @@ class MainActivity : Activity() {
         item("My profile cosmetics", "Show your local badges and activity on your own profile panel") { showProfileStudio() }
         item("Cosmetic lab", "Local badge and Nitro-style profile mock-ups") { cosmeticLab() }
         item("Custom CSS", "Style the Discord page yourself") { editCss() }
+        item("Style preset gallery", "Apply ready-made chat and interface CSS styles") { showStylePresets() }
         group("Utilities")
         item("Rich Presence", "Configure Discord Rich Presence") { showRPC() }
         item("Chat tools", "Quick reactions, hide upsells and compact chat") { showChatTools() }
@@ -291,6 +292,41 @@ class MainActivity : Activity() {
             .setMultiChoiceItems(options, keys.map { prefs.getBoolean(it, false) }.toBooleanArray()) { _, i, checked -> prefs.edit().putBoolean(keys[i], checked).apply(); applyCustomizations() }
             .setPositiveButton("Done", null).show()
     }
+    private fun showStylePresets() {
+        val presets = arrayOf(
+            "Soft rounded messages",
+            "Minimal compact chat",
+            "Bubble message layout",
+            "Hide visual clutter",
+            "High contrast readability",
+            "Monospace developer chat",
+            "Soft glass panels",
+            "Reset custom styles"
+        )
+        val css = arrayOf(
+            "[class*=messageListItem]{border-radius:14px!important;margin:4px 8px!important;padding:5px 8px!important}[class*=messageContent]{line-height:1.5!important}",
+            "[class*=messageListItem]{padding-top:1px!important;padding-bottom:1px!important}[class*=messageContent]{font-size:13px!important;line-height:1.3!important}[class*=divider]{margin-top:4px!important;margin-bottom:4px!important}",
+            "[class*=messageListItem]{margin:5px 10px!important;padding:8px 12px!important;border-radius:16px!important;background:rgba(127,127,127,.09)!important}[class*=contents]{border-radius:14px!important}",
+            "[class*=nitroMessage], [class*=premiumPromo], [class*=upsell], [class*=shopBanner], [class*=giftButton]{display:none!important}",
+            "[class*=messageContent]{font-size:17px!important;line-height:1.7!important;letter-spacing:.01em!important}[class*=markup]{color:var(--text-normal)!important}",
+            "[class*=messageContent],pre,code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important}[class*=messageContent]{font-size:13px!important;line-height:1.6!important}",
+            "[class*=messageListItem],[class*=containerDefault],[class*=membersWrap]{backdrop-filter:blur(12px)!important}[class*=messageListItem]{background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.06)!important;border-radius:12px!important;margin:4px!important}",
+            ""
+        )
+        AlertDialog.Builder(this).setTitle("Style preset gallery")
+            .setItems(presets) { _, which ->
+                if (which == presets.lastIndex) {
+                    prefs.edit().remove("css").apply()
+                    applyCustomizations()
+                    Toast.makeText(this, "Custom CSS cleared", Toast.LENGTH_SHORT).show()
+                } else {
+                    prefs.edit().putString("css", css[which]).apply()
+                    applyCustomizations()
+                    Toast.makeText(this, presets[which] + " applied", Toast.LENGTH_SHORT).show()
+                }
+            }.setNegativeButton("Close", null).show()
+    }
+
     private fun editCss() {
         val input = EditText(this).apply { minLines = 8; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE; setText(prefs.getString("css", "")); hint = "/* Your CSS */\nbody { }" }
         AlertDialog.Builder(this).setTitle("Custom CSS (local)")
