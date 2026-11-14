@@ -197,18 +197,17 @@ class MainActivity : Activity() {
     }
 
     private fun showThemes() {
-        val themes = arrayOf("Discord modern dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange")
-        val current = prefs.getInt("theme", 0)
-        AlertDialog.Builder(this).setTitle("Theme")
+        val themes = arrayOf("Discord blurple dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange", "Discord light")
+        val current = prefs.getInt("theme", 0).coerceIn(0, themes.lastIndex)
+        AlertDialog.Builder(this).setTitle("Colour theme")
             .setSingleChoiceItems(themes, current) { d, which -> prefs.edit().putInt("theme", which).apply(); applyCustomizations(); d.dismiss() }
+            .setNegativeButton("Close", null).show()
+        val options = arrayOf("Compact messages", "Hide message avatars", "Rounded message cards", "Use larger text", "Hide Nitro promotional panels", "Compact channel list", "Hide member list", "Hide profile activity panels", "Hide message embeds", "Hide attachment previews", "Reduce animations", "Hide sticker and GIF buttons")
+        val keys = arrayOf("compact","noavatars","cards","bigtext","upsells","compact_channels","hide_members","hide_activity","hide_embeds","hide_attachments","reduce_motion","hide_sticker_buttons")
+        AlertDialog.Builder(this).setTitle("Interface options")
+            .setMultiChoiceItems(options, keys.map { prefs.getBoolean(it, false) }.toBooleanArray()) { _, i, checked -> prefs.edit().putBoolean(keys[i], checked).apply(); applyCustomizations() }
             .setPositiveButton("Done", null).show()
-        val options = arrayOf("Compact messages", "Hide message avatars", "Rounded message cards", "Use larger text")
-        AlertDialog.Builder(this).setTitle("Appearance options")
-            .setMultiChoiceItems(options, booleanArrayOf(prefs.getBoolean("compact", false), prefs.getBoolean("noavatars", false), prefs.getBoolean("cards", false), prefs.getBoolean("bigtext", false))) { _, i, checked ->
-                prefs.edit().putBoolean(arrayOf("compact","noavatars","cards","bigtext")[i], checked).apply(); applyCustomizations()
-            }.setPositiveButton("Done", null).show()
     }
-
     private fun editCss() {
         val input = EditText(this).apply { minLines = 8; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE; setText(prefs.getString("css", "")); hint = "/* Your CSS */\nbody { }" }
         AlertDialog.Builder(this).setTitle("Custom CSS (local)")
@@ -336,24 +335,36 @@ class MainActivity : Activity() {
     }
 
     private fun applyCustomizations() {
-        val theme = prefs.getInt("theme", 0)
-        val bg = arrayOf("#313338","#000000","#120d20","#071827","#07170f","#241007")[theme.coerceIn(0,5)]
-        val compact = prefs.getBoolean("compact", false)
-        val noavatars = prefs.getBoolean("noavatars", false)
-        val cards = prefs.getBoolean("cards", false)
-        val bigtext = prefs.getBoolean("bigtext", false)
-        val custom = prefs.getString("css", "") ?: ""
-        val hideUpsells = prefs.getBoolean("upsells", false)
-        val css = "html,body,#app-mount{background:$bg!important;}" +
-            (if(compact) "[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important;} [class*=messageContent]{line-height:1.2!important;}" else "") +
-            (if(noavatars) "[class*=avatar]{display:none!important;}" else "") +
-            (if(cards) "[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.025)!important;}" else "") +
-            (if(bigtext) "[class*=messageContent]{font-size:16px!important;}" else "") +
-            (if(hideUpsells) "[class*=premiumPromo],[class*=nitroTopDivider],[class*=upsell],[class*=premiumUpsell]{display:none!important;}" else "") + custom
-        val escaped = css.replace("\\", "\\\\").replace("'", "\\'").replace("\n"," ")
-        web.evaluateJavascript("(function(){var s=document.getElementById('vcm-style');if(!s){s=document.createElement('style');s.id='vcm-style';document.head.appendChild(s);}s.textContent='$escaped';})();", null)
+        val theme = prefs.getInt("theme", 0).coerceIn(0, 6)
+        val palettes = arrayOf(
+            arrayOf("#313338","#2b2d31","#1e1f22","#5865f2","#f2f3f5","#b5bac1"),
+            arrayOf("#000000","#080808","#101010","#8b5cf6","#f5f5f5","#a1a1aa"),
+            arrayOf("#171321","#211a30","#100d18","#a78bfa","#f5efff","#c4b5fd"),
+            arrayOf("#10202d","#162a3a","#0b1722","#38bdf8","#e5f4ff","#a8c9df"),
+            arrayOf("#12231b","#1a3025","#0b1710","#34d399","#e8fff0","#a9d7b8"),
+            arrayOf("#2a1b14","#38251b","#1d120d","#fb923c","#fff2e8","#e7b99b"),
+            arrayOf("#ffffff","#f2f3f5","#e3e5e8","#5865f2","#232428","#5c5e66")
+        )
+        val p = palettes[theme]
+        val rules = StringBuilder()
+        rules.append(":root{color-scheme:" + (if(theme == 6) "light" else "dark") + ";--background-primary:"+p[0]+"!important;--background-secondary:"+p[1]+"!important;--background-secondary-alt:"+p[1]+"!important;--background-tertiary:"+p[2]+"!important;--background-floating:"+p[1]+"!important;--channeltextarea-background:"+p[2]+"!important;--modal-background:"+p[1]+"!important;--header-primary:"+p[4]+"!important;--text-normal:"+p[4]+"!important;--header-secondary:"+p[5]+"!important;--text-muted:"+p[5]+"!important;--interactive-normal:"+p[5]+"!important;--brand-experiment:"+p[3]+"!important;--brand-experiment-560:"+p[3]+"!important;--button-secondary-background:"+p[2]+"!important;--scrollbar-thin-thumb:"+p[5]+"!important;}")
+        rules.append("html,body,#app-mount{background:"+p[0]+"!important;color:"+p[4]+"!important;}")
+        if(prefs.getBoolean("compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
+        if(prefs.getBoolean("noavatars",false)) rules.append("[class*=messageListItem] [class*=avatar]{display:none!important}")
+        if(prefs.getBoolean("cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
+        if(prefs.getBoolean("bigtext",false)) rules.append("[class*=messageContent]{font-size:16px!important;line-height:1.45!important}")
+        if(prefs.getBoolean("upsells",false)) rules.append("[class*=premiumPromo],[class*=nitroTopDivider],[class*=upsell],[class*=premiumUpsell]{display:none!important}")
+        if(prefs.getBoolean("compact_channels",false)) rules.append("[class*=sidebar] [class*=containerDefault]{padding-top:0!important;padding-bottom:0!important}[class*=sidebar] [class*=name]{font-size:12px!important}")
+        if(prefs.getBoolean("hide_members",false)) rules.append("[class*=membersWrap]{display:none!important}")
+        if(prefs.getBoolean("hide_activity",false)) rules.append("[class*=activityPanel],[class*=nowPlayingColumn]{display:none!important}")
+        if(prefs.getBoolean("hide_embeds",false)) rules.append("[class*=embedWrapper],[class*=embedFull]{display:none!important}")
+        if(prefs.getBoolean("hide_attachments",false)) rules.append("[class*=attachmentContentContainer],[class*=imageContent],[class*=videoContainer]{display:none!important}")
+        if(prefs.getBoolean("reduce_motion",false)) rules.append("*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}")
+        if(prefs.getBoolean("hide_sticker_buttons",false)) rules.append("button[aria-label*=GIF],button[aria-label*=sticker],[class*=stickerButton],[class*=gifButton]{display:none!important}")
+        rules.append(prefs.getString("css", "") ?: "")
+        val escaped = rules.toString().replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ")
+        web.evaluateJavascript("(function(){var s=document.getElementById('vcm-style');if(!s){s=document.createElement('style');s.id='vcm-style';document.head.appendChild(s);}s.textContent='"+escaped+"';})();", null)
     }
-
     private fun findOnPage() {
         val query = EditText(this).apply { hint = "Search visible page text" }
         AlertDialog.Builder(this).setTitle("Find on page").setView(query)
