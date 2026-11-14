@@ -976,19 +976,45 @@ class MainActivity : Activity() {
     }
 
     private fun showChatTools() {
-        val options = arrayOf("Quick reaction palette", "Translate selected text", "Compact message spacing", "Hide Nitro promotional panels", "Format a message", "Create Discord timestamp", "Markdown reference", "Copy selected text")
+        val options = arrayOf("Quick reaction palette", "Emoji library", "Translate selected text", "Compact message spacing", "Hide Nitro promotional panels", "Format a message", "Create Discord timestamp", "Markdown reference", "Copy selected text")
         AlertDialog.Builder(this).setTitle("Chat tools").setItems(options) { _, index ->
             when(index) {
                 0 -> quickReactionPalette()
-                1 -> translateSelection()
-                2 -> { val enabled = !prefs.getBoolean("compact", false); prefs.edit().putBoolean("compact", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Compact spacing on" else "Compact spacing off", Toast.LENGTH_SHORT).show() }
-                3 -> { val enabled = !prefs.getBoolean("upsells", false); prefs.edit().putBoolean("upsells", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Promotional panels hidden where supported" else "Promotional panels shown", Toast.LENGTH_SHORT).show() }
-                4 -> formatDiscordMessage()
-                5 -> createDiscordTimestamp()
-                6 -> showMarkdownReference()
-                7 -> copySelection()
+                1 -> showEmojiLibrary()
+                2 -> translateSelection()
+                3 -> { val enabled = !prefs.getBoolean("compact", false); prefs.edit().putBoolean("compact", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Compact spacing on" else "Compact spacing off", Toast.LENGTH_SHORT).show() }
+                4 -> { val enabled = !prefs.getBoolean("upsells", false); prefs.edit().putBoolean("upsells", enabled).apply(); applyCustomizations(); Toast.makeText(this, if(enabled) "Promotional panels hidden where supported" else "Promotional panels shown", Toast.LENGTH_SHORT).show() }
+                5 -> formatDiscordMessage()
+                6 -> createDiscordTimestamp()
+                7 -> showMarkdownReference()
+                8 -> copySelection()
             }
         }.show()
+    }
+
+    private fun showEmojiLibrary() {
+        val groups = linkedMapOf(
+            "Faces" to "😀 😃 😄 😁 😆 😅 😂 🙂 🙃 🫠 😉 😊 😇 🥰 😍 🤩 😘 😗 ☺️ 😚 😙 🥲",
+            "Reactions" to "👍 👎 👏 🙌 🫶 🤝 🙏 💪 🫡 👀 💀 🤯 🥳 😭 😂 🤣 😮 😱 🫣 🥹",
+            "Hearts" to "❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💕 💞 💓 💗 💖 💘 💝",
+            "Hands" to "👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 🫰 🤟 🤘 🤙 👈 👉 👆 👇 ☝️",
+            "Animals" to "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐸 🐵 🐧 🐦 🦄 🐝 🦋 🐢",
+            "Food" to "🍕 🍔 🍟 🌭 🍿 🧂 🥓 🥚 🍳 🧇 🥞 🧀 🍗 🍖 🌮 🌯 🍜 🍣 🍩 🍪",
+            "Objects" to "💎 💰 🎁 🎈 🎉 🎊 🏆 🥇 ⚽ 🎮 🎧 💻 📱 🔥 ⭐ 🌟 ✨ 💡 🚀",
+            "Symbols" to "✅ ❌ ⚠️ ❗ ❓ 💯 🔞 ♻️ ➡️ ⬅️ ⬆️ ⬇️ 🔥 💢 ♾️ ™️ ©️ ®️"
+        )
+        AlertDialog.Builder(this).setTitle("Emoji library")
+            .setItems(groups.keys.toTypedArray()) { _, groupIndex ->
+                val group = groups.entries.elementAt(groupIndex)
+                val emojis = group.value.split(" ")
+                AlertDialog.Builder(this).setTitle(group.key + " • tap to copy")
+                    .setItems(emojis.toTypedArray()) { _, emojiIndex ->
+                        val emoji = emojis[emojiIndex]
+                        val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("Emoji", emoji))
+                        Toast.makeText(this, emoji + " copied", Toast.LENGTH_SHORT).show()
+                    }.setNegativeButton("Back") { _, _ -> showEmojiLibrary() }.show()
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun copySelection() {
