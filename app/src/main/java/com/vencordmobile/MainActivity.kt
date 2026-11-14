@@ -348,13 +348,13 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Rich Presence Builder")
             .setView(scroll)
-            .setPositiveButton("Save & preview") { _, _ ->
+            .setPositiveButton("Save & publish") { _, _ ->
                 val editor = prefs.edit()
                 fields.forEach { (key, input) -> editor.putString("rpc_$key", input.text.toString()) }
                 editor.putInt("rpc_type", typeSpinner.selectedItemPosition)
                     .putBoolean("rpc_timestamps_enabled", timestamps.isChecked)
                     .apply()
-                showRPCPreview()
+                publishRichPresence()
             }
             .setNeutralButton("Copy JSON") { _, _ ->
                 val json = org.json.JSONObject()
@@ -388,6 +388,82 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    private fun publishRichPresence() {
+        val activity = org.json.JSONObject()
+            .put("name", prefs.getString("rpc_name", ""))
+            .put("application_id", prefs.getString("rpc_application_id", ""))
+            .put("type", prefs.getInt("rpc_type", 0))
+            .put("details", prefs.getString("rpc_details", ""))
+            .put("state", prefs.getString("rpc_state", ""))
+        if (prefs.getBoolean("rpc_timestamps_enabled", false)) {
+            val timestamps = org.json.JSONObject()
+            prefs.getString("rpc_start", "")?.toLongOrNull()?.takeIf { it > 0 }?.let { timestamps.put("start", it) }
+            prefs.getString("rpc_end", "")?.toLongOrNull()?.takeIf { it > 0 }?.let { timestamps.put("end", it) }
+            if (timestamps.length() > 0) activity.put("timestamps", timestamps)
+        }
+        val assets = org.json.JSONObject()
+        listOf("large" to "large_image", "large_text" to "large_text", "small" to "small_image", "small_text" to "small_text").forEach { (pref, key) ->
+            prefs.getString("rpc_$pref", "")?.takeIf { it.isNotBlank() }?.let { assets.put(key, it) }
+        }
+        if (assets.length() > 0) activity.put("assets", assets)
+        val party = org.json.JSONObject()
+        prefs.getString("rpc_party_id", "")?.takeIf { it.isNotBlank() }?.let { party.put("id", it) }
+        val partySize = prefs.getString("rpc_party_size", "")?.toIntOrNull()
+        val partyMax = prefs.getString("rpc_party_max", "")?.toIntOrNull()
+        if (partySize != null && partyMax != null) party.put("size", org.json.JSONArray().put(partySize).put(partyMax))
+        if (party.length() > 0) activity.put("party", party)
+        val buttons = org.json.JSONArray()
+        for (n in 1..2) {
+            val label = prefs.getString("rpc_button${n}_label", "").orEmpty()
+            val url = prefs.getString("rpc_button${n}_url", "").orEmpty()
+            if (label.isNotBlank() && url.startsWith("https://")) buttons.put(org.json.JSONObject().put("label", label).put("url", url))
+        }
+        if (buttons.length() > 0) activity.put("buttons", buttons)
+        val payload = org.json.JSONObject.quote(activity.toString())
+        val script = """
+            (function() {
+              try {
+                var raw = $payload;
+                var activity = JSON.parse(raw);
+                var chunks = window.webpackChunkdiscord_app;
+                if (!chunks || !chunks.push) return 'Discord webpack runtime not ready';
+                var req;
+                chunks.push([[('vcm_rpc_' + Date.now())], {}, function(r) { req = r; }]);
+                if (!req || !req.c) return 'Could not access Discord module cache';
+                var dispatcher = null;
+                Object.keys(req.c).some(function(id) {
+                  var ex = req.c[id] && req.c[id].exports;
+                  if (!ex || typeof ex !== 'object') return false;
+                  var candidates = [ex, ex.default, ex.FluxDispatcher];
+                  return candidates.some(function(v) {
+                    if (v && typeof v.dispatch === 'function' && typeof v.subscribe === 'function') {
+                      dispatcher = v;
+                      return true;
+                    }
+                    if (v && v.FluxDispatcher && typeof v.FluxDispatcher.dispatch === 'function') {
+                      dispatcher = v.FluxDispatcher;
+                      return true;
+                    }
+                    return false;
+                  });
+                });
+                if (!dispatcher) return 'Discord activity dispatcher not found';
+                dispatcher.dispatch({
+                  type: 'LOCAL_ACTIVITY_UPDATE',
+                  activity: activity,
+                  pid: 1608,
+                  socketId: 'RichPresence@VencordMobile'
+                });
+                return 'Activity event dispatched';
+              } catch (e) { return 'Rich Presence error: ' + String(e); }
+            })();
+        """.trimIndent()
+        web.evaluateJavascript(script) { result ->
+            val message = try { org.json.JSONTokener(result).nextValue() as? String ?: "Unknown result" } catch (_: Exception) { "Unknown result" }
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun showRPCPreview() {
