@@ -9,10 +9,14 @@ import android.widget.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebChromeClient
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 
 class MainActivity : Activity() {
     private lateinit var web: WebView
     private lateinit var root: FrameLayout
+    private lateinit var swipe: SwipeRefreshLayout
     private val prefs by lazy { getSharedPreferences("vcm_prefs", MODE_PRIVATE) }
     private val plugins = listOf("Message Logger (local UI)", "Translator button", "Typing indicator tools", "Custom profile decorations", "Better message spacing", "Quick reactions", "Hide nitro upsells", "Developer tools")
     private val pluginKeys = listOf("logger", "translator", "typing", "decor", "spacing", "quickreact", "upsells", "devtools")
@@ -24,12 +28,25 @@ class MainActivity : Activity() {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.databaseEnabled = true
+        web.settings.domStorageEnabled = true
+        web.settings.useWideViewPort = true
+        web.settings.loadWithOverviewMode = true
+        web.settings.mediaPlaybackRequiresUserGesture = false
+        web.settings.setSupportZoom(true)
+        web.settings.builtInZoomControls = true
+        web.settings.displayZoomControls = false
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) WebSettingsCompat.setSafeBrowsingEnabled(web.settings, true)
         web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
         web.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) { applyCustomizations(); runPlugins() }
+            override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); runPlugins() }
         }
         web.webChromeClient = WebChromeClient()
-        root.addView(web, FrameLayout.LayoutParams(-1, -1))
+        swipe = SwipeRefreshLayout(this).apply {
+            setOnRefreshListener { web.reload() }
+            setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light)
+            addView(web, SwipeRefreshLayout.LayoutParams(-1, -1))
+        }
+        root.addView(swipe, FrameLayout.LayoutParams(-1, -1))
         val menu = Button(this).apply {
             text = "V"
             textSize = 18f
@@ -44,7 +61,7 @@ class MainActivity : Activity() {
     }
 
     private fun showHome() {
-        val sections = arrayOf("Plugins", "Themes & appearance", "Custom CSS editor", "Rich Presence", "Chat & messages", "Privacy", "Backup / restore", "Reload Discord", "About")
+        val sections = arrayOf("Plugins", "Themes & appearance", "Custom CSS editor", "Rich Presence", "Chat & messages", "Privacy", "Backup / restore", "Reload Discord", "Open Discord in browser", "Clear WebView cache", "About")
         AlertDialog.Builder(this).setTitle("Vencord Mobile • Control Centre")
             .setItems(sections) { _, which ->
                 when(which) {
@@ -56,7 +73,9 @@ class MainActivity : Activity() {
                     5 -> showPrivacy()
                     6 -> backup()
                     7 -> web.reload()
-                    8 -> AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Experimental Android Discord WebView shell with local customization controls. This is not the official Vencord project; desktop plugins and account-side cosmetics cannot be installed or granted by this app.").setPositiveButton("OK", null).show()
+                    8 -> startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app")))
+                    9 -> AlertDialog.Builder(this).setTitle("Clear cache?").setMessage("Clear cached web files. You will remain logged in unless site data is cleared separately.").setPositiveButton("Clear") { _, _ -> web.clearCache(true); Toast.makeText(this,"Cache cleared",Toast.LENGTH_SHORT).show() }.setNegativeButton("Cancel",null).show()
+                    10 -> AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Experimental Android Discord WebView shell with local customization controls. This is not the official Vencord project; desktop plugins and account-side cosmetics cannot be installed or granted by this app.").setPositiveButton("OK", null).show()
                 }
             }.show()
     }
