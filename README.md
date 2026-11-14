@@ -1,6 +1,10 @@
-# Vencord Mobile
+# NEXORA
 
-An independent Android Discord WebView shell with local interface customisation. It is not affiliated with Discord or the Vencord project.
+A redesigned Android Discord client shell with a full-screen NEXORA control deck with local interface customisation. It is not affiliated with Discord or the Vencord project.
+
+## NEXORA 2.0
+
+NEXORA introduces a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
 
 ## Features
 
