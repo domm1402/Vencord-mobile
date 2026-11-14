@@ -5,6 +5,10 @@ import android.app.AlertDialog
 import android.text.InputType
 import android.widget.*
 import org.json.JSONArray
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.concurrent.thread
 
 class PluginManager(private val activity: Activity, private val openFeature: (Int) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
@@ -22,22 +26,64 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
             .setView(info).show()
     }
     private fun repositories() {
-        val arr = try { JSONArray(prefs.getString("plugin_repos", "[]")) } catch (_: Exception) { JSONArray() }
-        val input = EditText(activity).apply {
-            hint = "https://example.com/plugins.json"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-        }
-        AlertDialog.Builder(activity).setTitle("Plugin repositories")
-            .setMessage("Saved URLs (not fetched or executed):\n\n$arr")
+        val saved = try { JSONArray(prefs.getString("plugin_repos", "[]")) } catch (_: Exception) { JSONArray() }
+        val input = EditText(activity).apply { hint = "https://raw.githubusercontent.com/user/repo/main/plugins.json"; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI }
+        AlertDialog.Builder(activity).setTitle("Plugin marketplace")
+            .setMessage("Add a public JSON manifest. Expected format: {\"plugins\":[{\"name\":\"Example\",\"description\":\"What it does\",\"url\":\"https://.../plugin.js\"}]}\nOnly install plugins you trust. They run inside your logged-in Discord page.")
             .setView(input)
-            .setPositiveButton("Add URL") { _, _ ->
+            .setPositiveButton("Fetch repository") { _, _ ->
                 val url = input.text.toString().trim()
-                if (url.startsWith("https://") && !arr.toString().contains(url)) {
-                    arr.put(url); prefs.edit().putString("plugin_repos", arr.toString()).apply()
-                    Toast.makeText(activity, "Repository saved", Toast.LENGTH_SHORT).show()
-                } else Toast.makeText(activity, "Enter a new HTTPS URL", Toast.LENGTH_SHORT).show()
+                if (!url.startsWith("https://")) { Toast.makeText(activity,"HTTPS repository URL required",Toast.LENGTH_SHORT).show() }
+                else {
+                    if (!saved.toString().contains(url)) saved.put(url)
+                    prefs.edit().putString("plugin_repos",saved.toString()).apply()
+                    fetchRepository(url)
+                }
             }
-            .setNeutralButton("Clear all") { _, _ -> prefs.edit().putString("plugin_repos", "[]").apply() }
+            .setNeutralButton("Saved repositories") { _, _ ->
+                val names = Array(saved.length()) { i -> saved.optString(i) }
+                if (names.isEmpty()) Toast.makeText(activity,"No saved repositories",Toast.LENGTH_SHORT).show()
+                else AlertDialog.Builder(activity).setTitle("Saved repositories").setItems(names) { _, i -> fetchRepository(names[i]) }.setNegativeButton("Close",null).show()
+            }
             .setNegativeButton("Close", null).show()
+    }
+
+    private fun fetchRepository(manifestUrl: String) {
+        Toast.makeText(activity,"Fetching plugin list…",Toast.LENGTH_SHORT).show()
+        thread {
+            try {
+                val connection = (URL(manifestUrl).openConnection() as HttpURLConnection).apply { connectTimeout=12000; readTimeout=15000; setRequestProperty("User-Agent","VencordMobile") }
+                val body = connection.inputStream.bufferedReader().use { it.readText() }
+                connection.disconnect()
+                require(body.length <= 1000000) { "Manifest is larger than 1 MB" }
+                val entries = JSONObject(body).optJSONArray("plugins") ?: throw Exception("Manifest needs a plugins array")
+                activity.runOnUiThread {
+                    if (entries.length() == 0) { Toast.makeText(activity,"No plugins in this repository",Toast.LENGTH_SHORT).show(); return@runOnUiThread }
+                    val names = Array(entries.length()) { i -> val p=entries.optJSONObject(i) ?: JSONObject(); p.optString("name","Unnamed plugin") + "  •  " + p.optString("description", "No description") }
+                    AlertDialog.Builder(activity).setTitle("Repository plugins").setItems(names) { _, index -> installRepositoryPlugin(entries.optJSONObject(index) ?: JSONObject()) }.setNegativeButton("Close",null).show()
+                }
+            } catch (e: Exception) { activity.runOnUiThread { AlertDialog.Builder(activity).setTitle("Repository error").setMessage(e.message ?: "Could not read repository").setPositiveButton("OK",null).show() } }
+        }
+    }
+
+    private fun installRepositoryPlugin(plugin: JSONObject) {
+        val name = plugin.optString("name", "Imported plugin")
+        val url = plugin.optString("url", "")
+        if (!url.startsWith("https://") || !url.endsWith(".js")) { Toast.makeText(activity,"Plugin URL must be an HTTPS .js file",Toast.LENGTH_LONG).show(); return }
+        AlertDialog.Builder(activity).setTitle("Install $name?").setMessage("${plugin.optString("description", "No description")}\n\nThis code will execute in your signed-in Discord page and may access account data. Install only if you trust its author.").setPositiveButton("Install") { _, _ ->
+            thread {
+                try {
+                    val connection = (URL(url).openConnection() as HttpURLConnection).apply { connectTimeout=12000; readTimeout=15000; setRequestProperty("User-Agent","VencordMobile") }
+                    val code = connection.inputStream.bufferedReader().use { it.readText() }; connection.disconnect()
+                    require(code.isNotBlank() && code.length <= 500000) { "Plugin is empty or exceeds 500 KB" }
+                    activity.runOnUiThread {
+                        val all = try { JSONArray(prefs.getString("custom_plugins", "[]")) } catch (_: Exception) { JSONArray() }
+                        all.put(JSONObject().put("name",name).put("source",url).put("code",code).put("enabled",true))
+                        prefs.edit().putString("custom_plugins",all.toString()).apply()
+                        Toast.makeText(activity,"Installed $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) { activity.runOnUiThread { Toast.makeText(activity,"Install failed: ${e.message}",Toast.LENGTH_LONG).show() } }
+            }
+        }.setNegativeButton("Cancel",null).show()
     }
 }
