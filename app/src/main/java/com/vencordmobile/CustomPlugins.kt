@@ -19,7 +19,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
         val a = load()
         val names = Array(a.length()) { i -> val p=a.optJSONObject(i); (if(p?.optBoolean("enabled",false)==true) "✓ " else "○ ")+(p?.optString("name","Plugin") ?: "Plugin") }
         AlertDialog.Builder(activity).setTitle("Plugins")
-            .setItems(names) { _, i -> edit(a, i) }
+            .setItems(names) { _, i -> manage(a, i) }
             .setPositiveButton("Install from URL") { _, _ -> installUrl(a) }
             .setNeutralButton("Add manually") { _, _ -> edit(a, -1) }
             .setNegativeButton("Security info") { _, _ ->
@@ -65,6 +65,20 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
         }
         require(input.contains("raw.githubusercontent.com/") || input.endsWith(".js")) { "Use a direct .js URL or GitHub file link" }
         return input
+    }
+    private fun manage(a: JSONArray, index: Int) {
+        val plugin = a.optJSONObject(index) ?: return
+        val enabled = plugin.optBoolean("enabled", false)
+        val actions = arrayOf(if(enabled) "Disable plugin" else "Enable plugin", "Edit plugin code", "Run enabled plugins now", "Delete plugin")
+        AlertDialog.Builder(activity).setTitle(plugin.optString("name", "Plugin"))
+            .setItems(actions) { _, action ->
+                when(action) {
+                    0 -> { plugin.put("enabled", !enabled); save(a); Toast.makeText(activity, if(!enabled) "Plugin enabled" else "Plugin disabled", Toast.LENGTH_SHORT).show() }
+                    1 -> edit(a, index)
+                    2 -> { onChanged(a); Toast.makeText(activity,"Enabled plugins reloaded",Toast.LENGTH_SHORT).show() }
+                    3 -> AlertDialog.Builder(activity).setMessage("Delete ${plugin.optString("name", "this plugin")}? ").setPositiveButton("Delete") { _, _ -> a.remove(index); save(a) }.setNegativeButton("Cancel",null).show()
+                }
+            }.show()
     }
     private fun edit(a: JSONArray, index: Int) {
         val old = if(index>=0) a.optJSONObject(index) ?: JSONObject() else JSONObject()
