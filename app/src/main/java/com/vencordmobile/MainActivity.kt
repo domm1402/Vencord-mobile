@@ -427,37 +427,87 @@ class MainActivity : Activity() {
               try {
                 var raw = $payload;
                 var activity = JSON.parse(raw);
-                var chunks = window.webpackChunkdiscord_app;
-                if (!chunks || !chunks.push) return 'Discord webpack runtime not ready';
-                var req;
-                chunks.push([[('vcm_rpc_' + Date.now())], {}, function(r) { req = r; }]);
-                if (!req || !req.c) return 'Could not access Discord module cache';
                 var dispatcher = null;
-                Object.keys(req.c).some(function(id) {
-                  var ex = req.c[id] && req.c[id].exports;
-                  if (!ex || typeof ex !== 'object') return false;
-                  var candidates = [ex, ex.default, ex.FluxDispatcher];
-                  return candidates.some(function(v) {
-                    if (v && typeof v.dispatch === 'function' && typeof v.subscribe === 'function') {
-                      dispatcher = v;
-                      return true;
+                var source = '';
+
+                // Vencord exposes its Webpack helpers on the Vencord global.
+                var vc = window.Vencord;
+                var webpack = vc && vc.Webpack;
+                var common = webpack && webpack.Common;
+                var candidates = [
+                  common && common.FluxDispatcher,
+                  vc && vc.Webpack && vc.Webpack.Common && vc.Webpack.Common.FluxDispatcher
+                ];
+                for (var i = 0; i < candidates.length; i++) {
+                  var d = candidates[i];
+                  if (d && typeof d.dispatch === 'function') {
+                    dispatcher = d;
+                    source = 'Vencord Webpack.Common';
+                    break;
+                  }
+                }
+
+                // Some Vencord builds expose findByProps rather than Common.
+                if (!dispatcher && webpack && typeof webpack.findByProps === 'function') {
+                  try {
+                    var found = webpack.findByProps('dispatch', 'subscribe');
+                    if (found && typeof found.dispatch === 'function') {
+                      dispatcher = found;
+                      source = 'Vencord Webpack.findByProps';
                     }
-                    if (v && v.FluxDispatcher && typeof v.FluxDispatcher.dispatch === 'function') {
-                      dispatcher = v.FluxDispatcher;
-                      return true;
-                    }
-                    return false;
+                  } catch (_) {}
+                }
+
+                // Last resort: inspect the actual Discord webpack chunk runtime.
+                if (!dispatcher) {
+                  var names = Object.keys(window).filter(function(k) {
+                    return /^webpackChunk.*discord/i.test(k);
                   });
-                });
-                if (!dispatcher) return 'Discord activity dispatcher not found';
+                  for (var n = 0; n < names.length && !dispatcher; n++) {
+                    var chunks = window[names[n]];
+                    if (!chunks || typeof chunks.push !== 'function') continue;
+                    var req;
+                    try {
+                      chunks.push([[('vcm_rpc_' + Date.now())], {}, function(r) { req = r; }]);
+                    } catch (_) { continue; }
+                    if (!req || !req.c) continue;
+                    Object.keys(req.c).some(function(id) {
+                      var ex = req.c[id] && req.c[id].exports;
+                      var list = ex ? [ex, ex.default, ex.FluxDispatcher] : [];
+                      return list.some(function(v) {
+                        if (v && typeof v.dispatch === 'function' && typeof v.subscribe === 'function') {
+                          dispatcher = v;
+                          source = names[n] + ' module cache';
+                          return true;
+                        }
+                        if (v && v.FluxDispatcher && typeof v.FluxDispatcher.dispatch === 'function') {
+                          dispatcher = v.FluxDispatcher;
+                          source = names[n] + ' module cache';
+                          return true;
+                        }
+                        return false;
+                      });
+                    });
+                  }
+                }
+
+                if (!dispatcher) {
+                  var hasVencord = !!window.Vencord;
+                  var chunkNames = Object.keys(window).filter(function(k) { return /^webpackChunk/i.test(k); });
+                  return 'Dispatcher not found. Vencord=' + hasVencord + '; webpack chunks=' + (chunkNames.join(',') || 'none') + '. Reload Discord and try again.';
+                }
+
+                // Match Siguma's LOCAL_ACTIVITY_UPDATE payload shape.
                 dispatcher.dispatch({
                   type: 'LOCAL_ACTIVITY_UPDATE',
                   activity: activity,
                   pid: 1608,
-                  socketId: 'RichPresence@VencordMobile'
+                  socketId: 'RPC@VencordMobile'
                 });
-                return 'Activity event dispatched';
-              } catch (e) { return 'Rich Presence error: ' + String(e); }
+                return 'Activity event sent via ' + source;
+              } catch (e) {
+                return 'Rich Presence error: ' + String(e && e.stack || e);
+              }
             })();
         """.trimIndent()
         web.evaluateJavascript(script) { result ->
