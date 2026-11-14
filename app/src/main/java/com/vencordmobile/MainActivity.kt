@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.os.Environment
 import android.text.InputType
 import android.view.Gravity
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.widget.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -75,8 +78,16 @@ class MainActivity : Activity() {
         root.addView(swipe, FrameLayout.LayoutParams(-1, -1))
         val menu = Button(this).apply {
             text = "V"
-            textSize = 18f
+            textSize = 21f
+            setTextColor(Color.WHITE)
+            typeface = Typeface.DEFAULT_BOLD
             contentDescription = "Vencord Mobile settings"
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                colors = intArrayOf(Color.rgb(137, 91, 255), Color.rgb(76, 53, 190))
+                setStroke(dp(2), Color.argb(110, 255, 255, 255))
+            }
+            elevation = dp(9).toFloat()
             setOnClickListener { showHome() }
         }
         val lp = FrameLayout.LayoutParams(dp(54), dp(54), Gravity.BOTTOM or Gravity.END)
@@ -109,6 +120,41 @@ class MainActivity : Activity() {
                     15 -> AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Experimental Android Discord WebView shell with local customization controls. This is not the official Vencord project; desktop plugins and account-side cosmetics cannot be installed or granted by this app.").setPositiveButton("OK", null).show()
                 }
             }.show()
+    }
+
+    private fun cosmeticLab() {
+        val preview = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(16), dp(18), dp(16))
+            background = GradientDrawable().apply { setColor(Color.rgb(43, 45, 51)); cornerRadius = dp(14).toFloat() }
+        }
+        preview.addView(TextView(this).apply {
+            text = "YOUR PROFILE  •  LOCAL PREVIEW"
+            textSize = 10f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(177, 160, 255))
+        })
+        preview.addView(TextView(this).apply {
+            text = "Discord user"
+            textSize = 21f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(10), 0, dp(4))
+        })
+        preview.addView(TextView(this).apply {
+            text = "✦ NITRO  •  ✓ HYPER  •  ★ EARLY"
+            textSize = 12f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(198, 177, 255))
+        })
+        preview.addView(TextView(this).apply {
+            text = "Visual mock-ups in this preview only. These do not grant account badges or Nitro, and other users will not see them."
+            textSize = 12f
+            setTextColor(Color.rgb(190, 193, 200))
+            setPadding(0, dp(12), 0, 0)
+        })
+        AlertDialog.Builder(this).setTitle("Cosmetic lab").setView(preview)
+            .setPositiveButton("Got it", null).show()
     }
 
     private fun showPlugins() {
