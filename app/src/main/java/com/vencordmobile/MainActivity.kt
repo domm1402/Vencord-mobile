@@ -171,6 +171,7 @@ class MainActivity : Activity() {
         item("Snippet vault", "Save reusable replies, templates and formatted text") { showSnippetVault() }
         item("Developer toolbox", "Format JSON, encode text, decode Base64 and inspect Discord IDs") { showDeveloperToolbox() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
+        item("Bookmarks", "Save, search and reopen Discord pages") { showBookmarks() }
         item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
             val opts = arrayOf("Back", "Forward", "Find on page", "Copy page URL", "Desktop / mobile mode", "Reload", "Clear cache")
             AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> web.reload(); 6 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
@@ -789,6 +790,56 @@ class MainActivity : Activity() {
                         }.setNegativeButton("Close", null).show()
                 }.setNegativeButton("Cancel", null).show()
         }.show()
+    }
+
+    private fun showBookmarks() {
+        fun readBookmarks(): org.json.JSONArray = try {
+            org.json.JSONArray(prefs.getString("bookmarks", "[]") ?: "[]")
+        } catch (_: Exception) { org.json.JSONArray() }
+
+        fun display(filter: String = "") {
+            val all = readBookmarks()
+            val matches = (0 until all.length()).mapNotNull { i ->
+                val item = all.optJSONObject(i) ?: return@mapNotNull null
+                Triple(i, item.optString("title", "Untitled"), item.optString("url"))
+            }.filter { it.second.contains(filter, true) || it.third.contains(filter, true) }
+            val labels = matches.map { it.second + "\n" + it.third }.toTypedArray()
+            AlertDialog.Builder(this).setTitle("Bookmarks (" + matches.size + ")")
+                .setItems(labels) { _, index ->
+                    val selected = matches[index]
+                    AlertDialog.Builder(this).setTitle(selected.second)
+                        .setMessage(selected.third)
+                        .setPositiveButton("Open") { _, _ -> web.loadUrl(selected.third) }
+                        .setNeutralButton("Delete") { _, _ ->
+                            val updated = org.json.JSONArray()
+                            for (i in 0 until all.length()) if (i != selected.first) updated.put(all.get(i))
+                            prefs.edit().putString("bookmarks", updated.toString()).apply()
+                            Toast.makeText(this, "Bookmark deleted", Toast.LENGTH_SHORT).show()
+                        }.setNegativeButton("Close", null).show()
+                }
+                .setPositiveButton("Add current page") { _, _ ->
+                    val url = web.url ?: return@setPositiveButton
+                    if (!url.startsWith("https://")) {
+                        Toast.makeText(this, "Only HTTPS pages can be bookmarked", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+                    val title = EditText(this).apply { setText(web.title ?: url); hint = "Bookmark title" }
+                    AlertDialog.Builder(this).setTitle("Save bookmark").setView(title)
+                        .setPositiveButton("Save") { _, _ ->
+                            val updated = readBookmarks()
+                            updated.put(org.json.JSONObject().put("title", title.text.toString().ifBlank { url }).put("url", url))
+                            prefs.edit().putString("bookmarks", updated.toString()).apply()
+                            Toast.makeText(this, "Bookmark saved", Toast.LENGTH_SHORT).show()
+                        }.setNegativeButton("Cancel", null).show()
+                }
+                .setNeutralButton("Search") { _, _ ->
+                    val search = EditText(this).apply { hint = "Search titles and URLs" }
+                    AlertDialog.Builder(this).setTitle("Search bookmarks").setView(search)
+                        .setPositiveButton("Find") { _, _ -> display(search.text.toString()) }
+                        .setNegativeButton("Cancel", null).show()
+                }.setNegativeButton("Close", null).show()
+        }
+        display()
     }
 
     private fun showChatTools() {
