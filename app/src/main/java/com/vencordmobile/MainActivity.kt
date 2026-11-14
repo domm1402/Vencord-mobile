@@ -172,6 +172,7 @@ class MainActivity : Activity() {
         item("Developer toolbox", "Format JSON, encode text, decode Base64 and inspect Discord IDs") { showDeveloperToolbox() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Bookmarks", "Save, search and reopen Discord pages") { showBookmarks() }
+        item("Discord quick navigation", "Jump to DMs, friends, settings, Nitro and discovery") { showQuickNavigation() }
         item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
             val opts = arrayOf("Back", "Forward", "Find on page", "Copy page URL", "Desktop / mobile mode", "Toggle reader mode", "Page zoom", "Reload", "Clear cache")
             AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> toggleReaderMode(); 6 -> showPageZoom(); 7 -> web.reload(); 8 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
@@ -829,6 +830,25 @@ class MainActivity : Activity() {
             .setPositiveButton("Save") { _, _ -> prefs.edit().putInt("page_text_zoom", seek.progress + 75).apply() }
             .setNeutralButton("Reset") { _, _ -> web.settings.textZoom = 100; prefs.edit().putInt("page_text_zoom", 100).apply() }
             .setNegativeButton("Close", null).show()
+    }
+
+    private fun showQuickNavigation() {
+        val destinations = arrayOf(
+            "Direct Messages" to "https://discord.com/channels/@me",
+            "Friends" to "https://discord.com/channels/@me",
+            "Nitro" to "https://discord.com/store",
+            "Shop" to "https://discord.com/shop",
+            "Discover servers" to "https://discord.com/guild-discovery",
+            "User settings" to "https://discord.com/settings",
+            "Connections" to "https://discord.com/settings/connections",
+            "Authorized apps" to "https://discord.com/settings/authorized-apps",
+            "Accessibility" to "https://discord.com/settings/accessibility",
+            "Keybinds" to "https://discord.com/settings/keybinds"
+        )
+        AlertDialog.Builder(this).setTitle("Discord quick navigation")
+            .setItems(destinations.map { it.first }.toTypedArray()) { _, index ->
+                web.loadUrl(destinations[index].second)
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun showBookmarks() {
