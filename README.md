@@ -13,6 +13,9 @@ An independent Android Discord WebView shell with local interface customisation.
 - Quick reaction emoji copy palette, selected-text translation, and a Discord Message Studio with formatting shortcuts.
 - Snippet Vault for reusable replies and templates, saved locally on-device.
 - Searchable bookmarks, Discord quick navigation, reader mode and adjustable text zoom.
+- Eight built-in CSS style presets for rounded, compact, bubble, minimal, high-contrast, developer and glass-like layouts.
+- Categorised emoji library covering faces, reactions, hearts, hands, animals, food, objects and symbols.
+- Custom accent colours and six interface font choices.
 - Developer Toolbox for JSON formatting, URL encoding/decoding, Base64 conversion, Discord Snowflake timestamps, and text statistics.
 - Rich Presence activity builder, local preview and JSON export.
 - Local profile badge/Nitro-style cosmetic preview.
