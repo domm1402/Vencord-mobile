@@ -98,63 +98,59 @@ class MainActivity : Activity() {
     }
 
     private fun showHome() {
-        val sections = arrayOf("Plugins", "Themes & appearance", "Custom CSS editor", "Rich Presence", "Chat & messages", "Privacy", "Backup / restore", "Reload Discord", "Back", "Forward", "Find text on page", "Copy page URL", "Open Discord in browser", "Clear WebView cache", "Desktop mode", "About")
-        AlertDialog.Builder(this).setTitle("Vencord Mobile • Control Centre")
-            .setItems(sections) { _, which ->
-                when (which) {
-                    0 -> PluginManager(this) { feature -> when (feature) { 0 -> showRPC(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> showPrivacy(); 5 -> CustomPlugins(this) { runPlugins() }.open() } }.open()
-                    1 -> showThemes()
-                    2 -> editCss()
-                    3 -> showRPC()
-                    4 -> showChatTools()
-                    5 -> showPrivacy()
-                    6 -> backup()
-                    7 -> web.reload()
-                    8 -> if (web.canGoBack()) web.goBack() else Toast.makeText(this, "No previous page", Toast.LENGTH_SHORT).show()
-                    9 -> if (web.canGoForward()) web.goForward() else Toast.makeText(this, "No next page", Toast.LENGTH_SHORT).show()
-                    10 -> findOnPage()
-                    11 -> { val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL", web.url ?: "")); Toast.makeText(this, "Page URL copied", Toast.LENGTH_SHORT).show() }
-                    12 -> startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app")))
-                    13 -> AlertDialog.Builder(this).setTitle("Clear cache?").setMessage("Clear cached web files. You will remain logged in unless site data is cleared separately.").setPositiveButton("Clear") { _, _ -> web.clearCache(true); Toast.makeText(this, "Cache cleared", Toast.LENGTH_SHORT).show() }.setNegativeButton("Cancel", null).show()
-                    14 -> toggleDesktopMode()
-                    15 -> AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Experimental Android Discord WebView shell with local customization controls. This is not the official Vencord project; desktop plugins and account-side cosmetics cannot be installed or granted by this app.").setPositiveButton("OK", null).show()
-                }
-            }.show()
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(18), dp(18), dp(16))
+            background = GradientDrawable().apply { setColor(Color.rgb(31, 32, 37)); cornerRadius = dp(20).toFloat() }
+        }
+        val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val logo = TextView(this).apply {
+            text = "V"; textSize = 25f; typeface = Typeface.DEFAULT_BOLD; gravity = Gravity.CENTER; setTextColor(Color.WHITE)
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; colors = intArrayOf(Color.rgb(149, 105, 255), Color.rgb(83, 57, 194)) }
+        }
+        header.addView(logo, LinearLayout.LayoutParams(dp(50), dp(50)))
+        val titleBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(12), 0, 0, 0) }
+        titleBox.addView(TextView(this).apply { text = "Vencord Mobile"; textSize = 20f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE) })
+        titleBox.addView(TextView(this).apply { text = "CONTROL CENTRE"; textSize = 10f; setTextColor(Color.rgb(171, 164, 192)) })
+        header.addView(titleBox)
+        panel.addView(header)
+        panel.addView(TextView(this).apply { text = "Customise your Discord experience"; textSize = 13f; setTextColor(Color.LTGRAY); setPadding(0, dp(12), 0, dp(8)) })
+        fun group(name: String) { panel.addView(TextView(this).apply { text = name.uppercase(); textSize = 10f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(174, 151, 255)); setPadding(0, dp(12), 0, dp(6)) }) }
+        fun item(name: String, info: String, click: () -> Unit) {
+            val row = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(14), dp(11), dp(14), dp(11)); background = GradientDrawable().apply { setColor(Color.rgb(47, 49, 56)); cornerRadius = dp(13).toFloat() }; isClickable = true; isFocusable = true; setOnClickListener { click() } }
+            row.addView(TextView(this).apply { text = name; textSize = 15f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE) })
+            row.addView(TextView(this).apply { text = info; textSize = 11f; setTextColor(Color.rgb(184, 186, 193)); setPadding(0, dp(3), 0, 0) })
+            val lp = LinearLayout.LayoutParams(-1, -2); lp.bottomMargin = dp(7); panel.addView(row, lp)
+        }
+        group("Customise")
+        item("Plugins & extensions", "Install, enable and manage your add-ons") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
+        item("Themes & appearance", "Colours, message spacing, avatars and layout") { showThemes() }
+        item("Cosmetic lab", "Local badge and Nitro-style profile mock-ups") { cosmeticLab() }
+        item("Custom CSS", "Style the Discord page yourself") { editCss() }
+        group("Utilities")
+        item("Rich Presence", "Configure a local activity preview") { showRPC() }
+        item("Chat tools", "Quick reactions, hide upsells and compact chat") { showChatTools() }
+        item("Backup settings", "Copy a backup of your preferences") { backup() }
+        item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
+            val opts = arrayOf("Back", "Forward", "Find on page", "Copy page URL", "Desktop / mobile mode", "Reload", "Clear cache")
+            AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> web.reload(); 6 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
+        }
+        item("Open Discord in browser", "Use your external browser") { startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app"))) }
+        item("About & limitations", "Compatibility, privacy and feature details") { AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Independent Android Discord WebView with local customisations. It cannot grant genuine Discord badges or Nitro. Discord mobile does not expose the desktop RPC IPC interface, so Rich Presence here is a local preview. Vencord, Revenge and Aliucord plugins use different runtimes and are not directly compatible.").setPositiveButton("OK",null).show() }
+        val scroll = ScrollView(this).apply { addView(panel) }
+        val dialog = AlertDialog.Builder(this).setView(scroll).create()
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.91).toInt(), (resources.displayMetrics.heightPixels * 0.86).toInt())
     }
 
     private fun cosmeticLab() {
-        val preview = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(16), dp(18), dp(16))
-            background = GradientDrawable().apply { setColor(Color.rgb(43, 45, 51)); cornerRadius = dp(14).toFloat() }
-        }
-        preview.addView(TextView(this).apply {
-            text = "YOUR PROFILE  •  LOCAL PREVIEW"
-            textSize = 10f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(177, 160, 255))
-        })
-        preview.addView(TextView(this).apply {
-            text = "Discord user"
-            textSize = 21f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
-            setPadding(0, dp(10), 0, dp(4))
-        })
-        preview.addView(TextView(this).apply {
-            text = "✦ NITRO  •  ✓ HYPER  •  ★ EARLY"
-            textSize = 12f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(198, 177, 255))
-        })
-        preview.addView(TextView(this).apply {
-            text = "Visual mock-ups in this preview only. These do not grant account badges or Nitro, and other users will not see them."
-            textSize = 12f
-            setTextColor(Color.rgb(190, 193, 200))
-            setPadding(0, dp(12), 0, 0)
-        })
-        AlertDialog.Builder(this).setTitle("Cosmetic lab").setView(preview)
-            .setPositiveButton("Got it", null).show()
+        val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(16), dp(18), dp(16)); background = GradientDrawable().apply { setColor(Color.rgb(43,45,51)); cornerRadius = dp(16).toFloat() } }
+        panel.addView(TextView(this).apply { text = "PROFILE COSMETIC PREVIEW"; textSize = 10f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(180,157,255)) })
+        panel.addView(TextView(this).apply { text = "Discord user"; textSize = 22f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE); setPadding(0,dp(10),0,dp(4)) })
+        panel.addView(TextView(this).apply { text = "✦ Nitro  •  ✓ Verified  •  ★ Early Supporter"; textSize = 12f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(206,190,255)) })
+        panel.addView(TextView(this).apply { text = "These are visual mock-ups inside this app only. They do not grant account entitlements or appear to other Discord users."; textSize = 12f; setTextColor(Color.LTGRAY); setPadding(0,dp(12),0,0) })
+        AlertDialog.Builder(this).setTitle("Cosmetic lab").setView(panel).setPositiveButton("Close",null).show()
     }
 
     private fun showPlugins() {
