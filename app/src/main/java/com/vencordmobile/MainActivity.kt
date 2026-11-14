@@ -22,6 +22,8 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 
 class MainActivity : Activity() {
+    private val fileChooserRequestCode = 4107
+    private var pendingFileChooser: android.webkit.ValueCallback<Array<android.net.Uri>>? = null
     private lateinit var web: WebView
     private lateinit var root: FrameLayout
     private lateinit var swipe: SwipeRefreshLayout
@@ -51,7 +53,36 @@ class MainActivity : Activity() {
         web.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); applyProfileEnhancements(); runPlugins() }
         }
-        web.webChromeClient = WebChromeClient()
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(
+                view: WebView?,
+                filePathCallback: android.webkit.ValueCallback<Array<android.net.Uri>>?,
+                fileChooserParams: FileChooserParams?
+            ): Boolean {
+                pendingFileChooser?.onReceiveValue(null)
+                pendingFileChooser = filePathCallback
+                val intent = try {
+                    fileChooserParams?.createIntent() ?: android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
+                        addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                        type = "*/*"
+                    }
+                } catch (_: Exception) {
+                    android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
+                        addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                        type = "*/*"
+                    }
+                }
+                return try {
+                    startActivityForResult(android.content.Intent.createChooser(intent, "Choose a file"), fileChooserRequestCode)
+                    true
+                } catch (e: Exception) {
+                    pendingFileChooser?.onReceiveValue(null)
+                    pendingFileChooser = null
+                    Toast.makeText(this@MainActivity, "No file picker is available: ${e.message}", Toast.LENGTH_LONG).show()
+                    false
+                }
+            }
+        }
         web.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             try {
                 val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
@@ -83,7 +114,7 @@ class MainActivity : Activity() {
             textSize = 21f
             setTextColor(Color.WHITE)
             typeface = Typeface.DEFAULT_BOLD
-            contentDescription = "Vencord Mobile settings"
+            contentDescription = "NEXORA control deck"
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 colors = intArrayOf(Color.rgb(137, 91, 255), Color.rgb(76, 53, 190))
@@ -1377,5 +1408,32 @@ class MainActivity : Activity() {
     private fun dp(v:Int)=(v*resources.displayMetrics.density).toInt()
     override fun onSaveInstanceState(outState: Bundle) { web.saveState(outState); super.onSaveInstanceState(outState) }
     @Deprecated("Deprecated in Android")
-    override fun onBackPressed() { if(web.canGoBack()) web.goBack() else super.onBackPressed() }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == fileChooserRequestCode) {
+            val result = if (resultCode == RESULT_OK) {
+                val uris = data?.clipData?.let { clip ->
+                    Array(clip.itemCount) { index -> clip.getItemAt(index).uri }
+                } ?: data?.data?.let { arrayOf(it) }
+                uris
+            } else null
+            pendingFileChooser?.onReceiveValue(result)
+            pendingFileChooser = null
+        }
+    }
+
+    override fun onDestroy() {
+        pendingFileChooser?.onReceiveValue(null)
+        pendingFileChooser = null
+        if (::web.isInitialized) {
+            web.stopLoading()
+            web.destroy()
+        }
+        super.onDestroy()
+    }
+
+    @Deprecated("Deprecated in Android")
+    override fun onBackPressed() {
+        if (web.isFocused && web.canGoBack()) web.goBack() else super.onBackPressed()
+    }
 }
