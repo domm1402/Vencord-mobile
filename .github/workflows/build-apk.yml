@@ -12,6 +12,23 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@12.15.0 --activate
+      - name: Build official Vencord web client bundle
+        run: |
+          git clone --depth 1 https://github.com/Vendicated/Vencord.git vencord-src
+          cd vencord-src
+          pnpm install --frozen-lockfile
+          pnpm buildWeb --standalone --skip-extension
+          cd ..
+          mkdir -p app/src/main/assets
+          cp vencord-src/dist/Vencord.user.js app/src/main/assets/vencord.user.js
+          cp vencord-src/LICENSE app/src/main/assets/VENCORD-LICENSE.txt
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
