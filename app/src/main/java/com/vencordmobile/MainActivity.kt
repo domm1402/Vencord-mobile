@@ -61,7 +61,7 @@ class MainActivity : Activity() {
     }
 
     private fun showHome() {
-        val sections = arrayOf("Plugins", "Themes & appearance", "Custom CSS editor", "Rich Presence", "Chat & messages", "Privacy", "Backup / restore", "Reload Discord", "Open Discord in browser", "Clear WebView cache", "About")
+        val sections = arrayOf("Plugins", "Themes & appearance", "Custom CSS editor", "Rich Presence", "Chat & messages", "Privacy", "Backup / restore", "Reload Discord", "Back", "Forward", "Find text on page", "Copy page URL", "Open Discord in browser", "Clear WebView cache", "About")
         AlertDialog.Builder(this).setTitle("Vencord Mobile • Control Centre")
             .setItems(sections) { _, which ->
                 when(which) {
@@ -73,8 +73,12 @@ class MainActivity : Activity() {
                     5 -> showPrivacy()
                     6 -> backup()
                     7 -> web.reload()
-                    8 -> startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app")))
-                    9 -> AlertDialog.Builder(this).setTitle("Clear cache?").setMessage("Clear cached web files. You will remain logged in unless site data is cleared separately.").setPositiveButton("Clear") { _, _ -> web.clearCache(true); Toast.makeText(this,"Cache cleared",Toast.LENGTH_SHORT).show() }.setNegativeButton("Cancel",null).show()
+                    8 -> if (web.canGoBack()) web.goBack() else Toast.makeText(this, "No previous page", Toast.LENGTH_SHORT).show()
+                    9 -> if (web.canGoForward()) web.goForward() else Toast.makeText(this, "No next page", Toast.LENGTH_SHORT).show()
+                    10 -> findOnPage()
+                    11 -> { val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL", web.url ?: "")); Toast.makeText(this, "Page URL copied", Toast.LENGTH_SHORT).show() }
+                    12 -> startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app")))
+                    13 -> AlertDialog.Builder(this).setTitle("Clear cache?").setMessage("Clear cached web files. You will remain logged in unless site data is cleared separately.").setPositiveButton("Clear") { _, _ -> web.clearCache(true); Toast.makeText(this,"Cache cleared",Toast.LENGTH_SHORT).show() }.setNegativeButton("Cancel",null).show()
                     10 -> AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Experimental Android Discord WebView shell with local customization controls. This is not the official Vencord project; desktop plugins and account-side cosmetics cannot be installed or granted by this app.").setPositiveButton("OK", null).show()
                 }
             }.show()
