@@ -10,7 +10,9 @@ An independent Android Discord WebView shell with local interface customisation.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
 - JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links.
 - JSON plugin repository browser.
-- Quick reaction emoji copy palette and selected-text translation.
+- Quick reaction emoji copy palette, selected-text translation, and a Discord Message Studio with formatting shortcuts.
+- Snippet Vault for reusable replies and templates, saved locally on-device.
+- Developer Toolbox for JSON formatting, URL encoding/decoding, Base64 conversion, Discord Snowflake timestamps, and text statistics.
 - Rich Presence activity builder, local preview and JSON export.
 - Local profile badge/Nitro-style cosmetic preview.
 
