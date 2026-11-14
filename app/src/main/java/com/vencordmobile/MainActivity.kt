@@ -777,7 +777,7 @@ class MainActivity : Activity() {
                                 val millis = (id shr 22) + 1420070400000L
                                 "Created: " + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(millis)) + "\nTimestamp: " + millis
                             }
-                            else -> "Characters: " + source.length + "\nWords: " + source.trim().split(Regex("\\s+")).count { it.isNotEmpty() } + "\nLines: " + if(source.isEmpty()) 0 else source.count { it == '\\n' } + 1
+                            else -> "Characters: " + source.length + "\nWords: " + source.trim().split(Regex("\\s+")).count { it.isNotEmpty() } + "\nLines: " + if(source.isEmpty()) 0 else source.count { it == '\n' } + 1
                         }
                     } catch(e: Exception) { "Error: " + (e.message ?: "Invalid input") }
                     val output = EditText(this).apply { setText(result); minLines = 4; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
