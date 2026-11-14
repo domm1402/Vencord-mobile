@@ -6,7 +6,7 @@ An independent Android Discord WebView shell with local interface customisation.
 
 - Discord web app in an Android WebView, with swipe refresh and Android file downloads.
 - Modern dark Control Centre, mobile/desktop page mode, navigation and find-on-page.
-- Seven built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 22 local chat/layout toggles.
+- Seven built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 21 local chat/layout toggles.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
 - JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links.
 - JSON plugin repository browser.
@@ -40,7 +40,7 @@ Plugin JavaScript executes in the signed-in Discord page and can access page dat
 
 ## Feature scope
 
-This project prioritises working, testable features over artificial APK size or empty feature counts. A larger APK is not inherently better; bundled assets, libraries and offline resources should only be added when they provide real functionality. The feature library currently provides 22 selectable local interface controls. Desktop Vencord plugins that depend on native desktop APIs are not automatically compatible with Android WebView.
+This project prioritises working, testable features over artificial APK size or empty feature counts. A larger APK is not inherently better; bundled assets, libraries and offline resources should only be added when they provide real functionality. The feature library currently provides 21 selectable local interface controls. Desktop Vencord plugins that depend on native desktop APIs are not automatically compatible with Android WebView.
 
 ## Build
 
