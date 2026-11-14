@@ -47,7 +47,7 @@ class MainActivity : Activity() {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) WebSettingsCompat.setSafeBrowsingEnabled(web.settings, true)
         web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
         web.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); runPlugins() }
+            override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); applyProfileEnhancements(); runPlugins() }
         }
         web.webChromeClient = WebChromeClient()
         web.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
@@ -125,6 +125,7 @@ class MainActivity : Activity() {
         group("Customise")
         item("Plugins & extensions", "Install, enable and manage your add-ons") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
         item("Themes & appearance", "Colours, message spacing, avatars and layout") { showThemes() }
+        item("My profile cosmetics", "Show your local badges and activity on your own profile panel") { showProfileStudio() }
         item("Cosmetic lab", "Local badge and Nitro-style profile mock-ups") { cosmeticLab() }
         item("Custom CSS", "Style the Discord page yourself") { editCss() }
         group("Utilities")
@@ -144,6 +145,34 @@ class MainActivity : Activity() {
         dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.91).toInt(), (resources.displayMetrics.heightPixels * 0.86).toInt())
     }
 
+    private fun showProfileStudio() {
+        val badges = EditText(this).apply {
+            hint = "Nitro, Verified, Early Supporter"
+            setText(prefs.getString("profile_badges", "Nitro, Early Supporter"))
+        }
+        val activityName = EditText(this).apply { hint = "Activity name"; setText(prefs.getString("rpc_name", "Playing a game")) }
+        val activityDetails = EditText(this).apply { hint = "Activity details"; setText(prefs.getString("rpc_details", "Custom activity")) }
+        val activityState = EditText(this).apply { hint = "Activity state"; setText(prefs.getString("rpc_state", "Available")) }
+        val enabled = CheckBox(this).apply { text = "Show local cosmetics and activity on my own profile panel"; isChecked = prefs.getBoolean("profile_overlay", true) }
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(TextView(this@MainActivity).apply { text = "Badge labels (comma separated)"; setTextColor(Color.LTGRAY) }); addView(badges); addView(TextView(this@MainActivity).apply { text = "Local activity display"; setTextColor(Color.LTGRAY); setPadding(0,dp(8),0,0) }); addView(activityName); addView(activityDetails); addView(activityState); addView(enabled) }
+        AlertDialog.Builder(this).setTitle("My profile • local cosmetics")
+            .setMessage("These decorations are injected only into your own view of Discord. They are not real Discord badges, Nitro or published Rich Presence.")
+            .setView(box)
+            .setPositiveButton("Save & apply") { _, _ ->
+                prefs.edit().putString("profile_badges", badges.text.toString()).putString("rpc_name",activityName.text.toString()).putString("rpc_details",activityDetails.text.toString()).putString("rpc_state",activityState.text.toString()).putBoolean("profile_overlay",enabled.isChecked).apply()
+                applyProfileEnhancements()
+                Toast.makeText(this,"Your local profile decorations were saved",Toast.LENGTH_SHORT).show()
+            }.setNeutralButton("Preview") { _, _ -> applyProfileEnhancements(); showRPCPreview() }.setNegativeButton("Close",null).show()
+    }
+
+    private fun applyProfileEnhancements() {
+        if (!::web.isInitialized) return
+        val badges = prefs.getString("profile_badges", "Nitro, Early Supporter") ?: ""
+        val enabled = prefs.getBoolean("profile_overlay", true)
+        val payload = org.json.JSONObject().put("enabled",enabled).put("badges",org.json.JSONArray(badges.split(",").map { it.trim() }.filter { it.isNotBlank() })).put("activity",org.json.JSONObject().put("name",prefs.getString("rpc_name","Playing a game")).put("details",prefs.getString("rpc_details","Custom activity")).put("state",prefs.getString("rpc_state","Available"))).toString()
+        val script = "(function(){const cfg=$payload;const id='vcm-profile-local';document.getElementById(id)?.remove();if(!cfg.enabled)return;const css=document.createElement('style');css.id=id+'-css';css.textContent='#'+id+'{margin:10px 0;padding:10px;border-radius:10px;background:rgba(117,83,220,.16);border:1px solid rgba(164,139,255,.35);color:var(--header-primary,#fff);font-size:12px}#'+id+' .vcm-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}#'+id+' .vcm-badge{padding:3px 7px;border-radius:20px;background:rgba(139,105,255,.24);color:#d8caff;font-weight:700;font-size:10px}#'+id+' .vcm-rpc{font-weight:700}#'+id+' .vcm-muted{opacity:.75;margin-top:2px}';document.head.appendChild(css);const cards=[...document.querySelectorAll('[class*=userPopout],[class*=userProfile],[class*=profilePanel],[role=dialog]')];const own=cards.find(e=>/edit profile|my account|set status/i.test(e.innerText||''));if(!own)return;const box=document.createElement('div');box.id=id;const row=document.createElement('div');row.className='vcm-badges';cfg.badges.forEach(label=>{const b=document.createElement('span');b.className='vcm-badge';b.textContent=label;row.appendChild(b)});box.appendChild(row);if(cfg.activity.name){const t=document.createElement('div');t.className='vcm-rpc';t.textContent='Playing '+cfg.activity.name;box.appendChild(t);[cfg.activity.details,cfg.activity.state].filter(Boolean).forEach(v=>{const x=document.createElement('div');x.className='vcm-muted';x.textContent=v;box.appendChild(x)})}own.appendChild(box);})();"
+        web.evaluateJavascript(script, null)
+    }
     private fun cosmeticLab() {
         val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(16), dp(18), dp(16)); background = GradientDrawable().apply { setColor(Color.rgb(43,45,51)); cornerRadius = dp(16).toFloat() } }
         panel.addView(TextView(this).apply { text = "PROFILE COSMETIC PREVIEW"; textSize = 10f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(180,157,255)) })
