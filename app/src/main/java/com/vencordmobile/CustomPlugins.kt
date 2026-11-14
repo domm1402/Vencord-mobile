@@ -29,7 +29,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
         val old = if(index>=0) a.optJSONObject(index) ?: JSONObject() else JSONObject()
         val name=EditText(activity).apply { hint="Plugin name"; setText(old.optString("name","")) }
         val code=EditText(activity).apply { hint="JavaScript code"; minLines=10; gravity=Gravity.TOP; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS; setText(old.optString("code","")) }
-        val box=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL; setPadding(24,8,24,0); addView(name); addView(code, LinearLayout.LayoutParams(-1, activity.resources.displayMetrics.heightPixels/3) }
+        val box=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL; setPadding(24,8,24,0); addView(name); addView(code, LinearLayout.LayoutParams(-1, activity.resources.displayMetrics.heightPixels/3)) }
         val builder=AlertDialog.Builder(activity).setTitle(if(index<0) "New plugin" else "Edit plugin").setView(box)
             .setPositiveButton("Save") { _,_ ->
                 val p=JSONObject().put("name",name.text.toString().ifBlank{"My plugin"}).put("code",code.text.toString()).put("enabled",true)
