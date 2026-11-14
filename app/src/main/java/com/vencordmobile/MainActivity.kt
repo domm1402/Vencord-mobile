@@ -255,32 +255,186 @@ class MainActivity : Activity() {
     }
 
     private fun showRPC() {
-        val app = EditText(this).apply { setText(prefs.getString("rpc_name", "Playing a game")); hint = "Activity name" }
-        val details = EditText(this).apply { setText(prefs.getString("rpc_details", "Custom activity")); hint = "Details" }
-        val state = EditText(this).apply { setText(prefs.getString("rpc_state", "Available")); hint = "State" }
-        val large = EditText(this).apply { setText(prefs.getString("rpc_large", "")); hint = "Large image key (optional)" }
-        val small = EditText(this).apply { setText(prefs.getString("rpc_small", "")); hint = "Small image key (optional)" }
-        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(app); addView(details); addView(state); addView(large); addView(small) }
-        AlertDialog.Builder(this).setTitle("Rich Presence • activity builder").setMessage("This editor saves your activity details. Live Android Rich Presence uses Discord Social SDK 1.10+ and requires your Discord Application ID plus the official Android SDK package.").setView(box)
+        val fields = linkedMapOf<String, EditText>()
+        fun field(key: String, label: String, hint: String = "", type: Int = InputType.TYPE_CLASS_TEXT): EditText {
+            val input = EditText(this).apply {
+                setText(prefs.getString("rpc_$key", ""))
+                this.hint = hint.ifBlank { label }
+                inputType = type
+                textSize = 15f
+                setTextColor(Color.WHITE)
+                setHintTextColor(Color.LTGRAY)
+                setPadding(dp(12), dp(9), dp(12), dp(9))
+                background = GradientDrawable().apply {
+                    setColor(Color.rgb(35, 36, 42))
+                    cornerRadius = dp(7).toFloat()
+                    setStroke(dp(1), Color.rgb(65, 67, 76))
+                }
+            }
+            fields[key] = input
+            val labelView = TextView(this).apply {
+                text = label.uppercase()
+                textSize = 10f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.LTGRAY)
+                setPadding(0, dp(10), 0, dp(4))
+            }
+            form.addView(labelView)
+            form.addView(input, LinearLayout.LayoutParams(-1, dp(48)))
+            return input
+        }
+        val form = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(10), dp(16), dp(18))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(43, 45, 51))
+                cornerRadius = dp(12).toFloat()
+            }
+        }
+        fun section(title: String) {
+            form.addView(TextView(this).apply {
+                text = title.uppercase()
+                textSize = 12f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.rgb(177, 160, 255))
+                setPadding(0, dp(18), 0, dp(4))
+            })
+        }
+        section("Basic")
+        field("name", "Application name", "GTA VI")
+        field("application_id", "Application ID", "Discord application ID", InputType.TYPE_CLASS_NUMBER)
+        val typeLabel = TextView(this).apply {
+            text = "ACTIVITY TYPE"
+            textSize = 10f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.LTGRAY)
+            setPadding(0, dp(10), 0, dp(4))
+        }
+        form.addView(typeLabel)
+        val types = arrayOf("Playing", "Streaming", "Listening", "Watching", "Custom", "Competing")
+        val typeSpinner = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, types)
+            setSelection(prefs.getInt("rpc_type", 0).coerceIn(0, types.lastIndex))
+        }
+        form.addView(typeSpinner, LinearLayout.LayoutParams(-1, dp(48)))
+        field("state", "State", "Playing Solo")
+        field("details", "Details", "Competitive")
+        section("Timestamps")
+        val timestamps = CheckBox(this).apply {
+            text = "Enable timestamps"
+            setTextColor(Color.WHITE)
+            isChecked = prefs.getBoolean("rpc_timestamps_enabled", false)
+        }
+        form.addView(timestamps)
+        field("start", "Start timestamp (milliseconds)", "e.g. 1731600000000", InputType.TYPE_CLASS_NUMBER)
+        field("end", "End timestamp (milliseconds)", "Optional", InputType.TYPE_CLASS_NUMBER)
+        section("Images")
+        field("large", "Large image key or URL", "asset key or image URL")
+        field("large_text", "Large image text", "Shown when hovering")
+        field("small", "Small image key or URL", "Optional")
+        field("small_text", "Small image text", "Shown when hovering")
+        section("Party")
+        field("party_id", "Party ID", "Optional party identifier")
+        field("party_size", "Party size", "1", InputType.TYPE_CLASS_NUMBER)
+        field("party_max", "Party max", "5", InputType.TYPE_CLASS_NUMBER)
+        field("join_secret", "Join secret", "Optional")
+        section("Buttons")
+        field("button1_label", "Button 1 label", "Ask to Join")
+        field("button1_url", "Button 1 URL", "https://example.com")
+        field("button2_label", "Button 2 label", "Optional")
+        field("button2_url", "Button 2 URL", "https://example.com")
+        val scroll = ScrollView(this).apply { isFillViewport = true; addView(form) }
+        AlertDialog.Builder(this)
+            .setTitle("Rich Presence Builder")
+            .setView(scroll)
             .setPositiveButton("Save & preview") { _, _ ->
-                prefs.edit().putString("rpc_name",app.text.toString()).putString("rpc_details",details.text.toString()).putString("rpc_state",state.text.toString()).putString("rpc_large",large.text.toString()).putString("rpc_small",small.text.toString()).apply()
+                val editor = prefs.edit()
+                fields.forEach { (key, input) -> editor.putString("rpc_$key", input.text.toString()) }
+                editor.putInt("rpc_type", typeSpinner.selectedItemPosition)
+                    .putBoolean("rpc_timestamps_enabled", timestamps.isChecked)
+                    .apply()
                 showRPCPreview()
             }
             .setNeutralButton("Copy JSON") { _, _ ->
-                val json = org.json.JSONObject().put("name",app.text.toString()).put("details",details.text.toString()).put("state",state.text.toString()).put("largeImageKey",large.text.toString()).put("smallImageKey",small.text.toString()).toString(2)
+                val json = org.json.JSONObject()
+                    .put("name", fields["name"]?.text.toString())
+                    .put("application_id", fields["application_id"]?.text.toString())
+                    .put("type", typeSpinner.selectedItemPosition)
+                    .put("state", fields["state"]?.text.toString())
+                    .put("details", fields["details"]?.text.toString())
+                    .put("timestamps", org.json.JSONObject()
+                        .put("_enabled", timestamps.isChecked)
+                        .put("start", fields["start"]?.text.toString().toLongOrNull() ?: 0L)
+                        .put("end", fields["end"]?.text.toString().toLongOrNull() ?: 0L))
+                    .put("assets", org.json.JSONObject()
+                        .put("large_image", fields["large"]?.text.toString())
+                        .put("large_text", fields["large_text"]?.text.toString())
+                        .put("small_image", fields["small"]?.text.toString())
+                        .put("small_text", fields["small_text"]?.text.toString()))
+                    .put("party", org.json.JSONObject()
+                        .put("id", fields["party_id"]?.text.toString())
+                        .put("size", fields["party_size"]?.text.toString().toIntOrNull() ?: 1)
+                        .put("max", fields["party_max"]?.text.toString().toIntOrNull() ?: 5))
+                    .put("join_secret", fields["join_secret"]?.text.toString())
+                    .put("buttons", org.json.JSONArray().put(
+                        org.json.JSONObject().put("label", fields["button1_label"]?.text.toString()).put("url", fields["button1_url"]?.text.toString())
+                    ).put(
+                        org.json.JSONObject().put("label", fields["button2_label"]?.text.toString()).put("url", fields["button2_url"]?.text.toString())
+                    )).toString(2)
                 val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                cm.setPrimaryClip(android.content.ClipData.newPlainText("Rich Presence config",json))
-                Toast.makeText(this,"Activity JSON copied",Toast.LENGTH_SHORT).show()
-            }.setNegativeButton("Cancel",null).show()
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Rich Presence JSON", json))
+                Toast.makeText(this, "Rich Presence JSON copied", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Close", null)
+            .show()
     }
 
     private fun showRPCPreview() {
-        val card = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18),dp(16),dp(18),dp(16)); background = GradientDrawable().apply { setColor(Color.rgb(43,45,51)); cornerRadius = dp(14).toFloat() } }
-        card.addView(TextView(this).apply { text = "PLAYING A GAME"; textSize = 10f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(177,160,255)) })
-        card.addView(TextView(this).apply { text = prefs.getString("rpc_name","Playing a game"); textSize = 20f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE); setPadding(0,dp(8),0,dp(4)) })
-        card.addView(TextView(this).apply { text = prefs.getString("rpc_details",""); textSize = 13f; setTextColor(Color.LTGRAY) })
-        card.addView(TextView(this).apply { text = prefs.getString("rpc_state",""); textSize = 12f; setTextColor(Color.LTGRAY); setPadding(0,dp(3),0,0) })
-        AlertDialog.Builder(this).setTitle("Activity preview").setView(card).setPositiveButton("Edit") { _, _ -> showRPC() }.setNegativeButton("Close",null).show()
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(16), dp(18), dp(16))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(88, 101, 242))
+                cornerRadius = dp(12).toFloat()
+            }
+        }
+        card.addView(TextView(this).apply {
+            text = "PLAYING A GAME"
+            textSize = 10f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.WHITE)
+        })
+        card.addView(TextView(this).apply {
+            text = prefs.getString("rpc_name", "My new game")
+            textSize = 21f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(8), 0, dp(8))
+        })
+        card.addView(TextView(this).apply {
+            val details = prefs.getString("rpc_details", "").orEmpty()
+            val state = prefs.getString("rpc_state", "").orEmpty()
+            text = listOf(details, state).filter { it.isNotBlank() }.joinToString("\n")
+            textSize = 13f
+            setTextColor(Color.WHITE)
+        })
+        val metadata = listOf(
+            "Large image: " + prefs.getString("rpc_large", "").orEmpty(),
+            "Small image: " + prefs.getString("rpc_small", "").orEmpty(),
+            "Party: " + prefs.getString("rpc_party_size", "1") + " / " + prefs.getString("rpc_party_max", "5")
+        ).filterNot { it.endsWith(": ") }
+        card.addView(TextView(this).apply {
+            text = metadata.joinToString("\n")
+            textSize = 11f
+            setTextColor(Color.rgb(230, 232, 255))
+            setPadding(0, dp(12), 0, 0)
+        })
+        AlertDialog.Builder(this)
+            .setTitle("Full Profile • Preview")
+            .setView(card)
+            .setPositiveButton("Edit") { _, _ -> showRPC() }
+            .setNegativeButton("Close", null)
+            .show()
     }
 
     private fun showChatTools() {
