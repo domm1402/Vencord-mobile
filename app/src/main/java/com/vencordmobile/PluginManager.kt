@@ -14,7 +14,7 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
     private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview")
     fun open() {
-        AlertDialog.Builder(activity).setTitle("Vencord Mobile • Extensions")
+        AlertDialog.Builder(activity).setTitle("NEXORA • Extensions")
             .setMessage("Manage local add-ons and interface tools. Downloaded plugins execute inside your signed-in Discord page and may access page data. Only install code you trust. Desktop Vencord, Revenge and Aliucord packages are not directly compatible.")
             .setItems(features) { _, index -> openFeature(index) }
             .setNeutralButton("Plugin repositories") { _, _ -> repositories() }
