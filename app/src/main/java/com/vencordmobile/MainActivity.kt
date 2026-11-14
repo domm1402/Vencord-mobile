@@ -18,6 +18,7 @@ import android.webkit.CookieManager
 import android.webkit.URLUtil
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 
 class MainActivity : Activity() {
@@ -46,6 +47,7 @@ class MainActivity : Activity() {
         web.settings.displayZoomControls = false
         if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) WebSettingsCompat.setSafeBrowsingEnabled(web.settings, true)
         web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
+        installVencord()
         web.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); applyProfileEnhancements(); runPlugins() }
         }
@@ -97,6 +99,39 @@ class MainActivity : Activity() {
         if (savedInstanceState == null) web.loadUrl("https://discord.com/app") else web.restoreState(savedInstanceState)
     }
 
+    private fun installVencord() {
+        try {
+            val bundle = assets.open("vencord.user.js").bufferedReader().use { it.readText() }
+            val bridge = """
+                (function(){
+                  if (window.__vcmVencordBridge) return;
+                  window.__vcmVencordBridge = true;
+                  window.unsafeWindow = window;
+                  window.GM_xmlhttpRequest = function(options) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open(options.method || 'GET', options.url, true);
+                    xhr.responseType = 'blob';
+                    if (options.timeout) xhr.timeout = options.timeout;
+                    if (options.headers) Object.keys(options.headers).forEach(function(k){ xhr.setRequestHeader(k, options.headers[k]); });
+                    xhr.onload = function(){ if(options.onload) options.onload({response:xhr.response,status:xhr.status,statusText:xhr.statusText,responseHeaders:xhr.getAllResponseHeaders(),finalUrl:xhr.responseURL}); };
+                    xhr.onerror = function(){ if(options.onerror) options.onerror({status:xhr.status}); };
+                    xhr.ontimeout = function(){ if(options.ontimeout) options.ontimeout(); };
+                    xhr.onabort = function(){ if(options.onabort) options.onabort(); };
+                    xhr.send(options.data || null);
+                    return {abort:function(){xhr.abort();}};
+                  };
+                })();
+            """.trimIndent()
+            val source = bridge + "\n" + bundle
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                WebViewCompat.addDocumentStartJavaScript(web, source, setOf("https://discord.com", "https://*.discord.com"))
+            } else {
+                Toast.makeText(this, "This Android System WebView is too old for Vencord injection. Update Android System WebView.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Vencord bundle is missing. Build again with the Vencord bundle step. ${'$'}{e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
     private fun showHome() {
         val panel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -129,7 +164,7 @@ class MainActivity : Activity() {
         item("Cosmetic lab", "Local badge and Nitro-style profile mock-ups") { cosmeticLab() }
         item("Custom CSS", "Style the Discord page yourself") { editCss() }
         group("Utilities")
-        item("Rich Presence", "Configure a local activity preview") { showRPC() }
+        item("Rich Presence", "Configure Discord Rich Presence") { showRPC() }
         item("Chat tools", "Quick reactions, hide upsells and compact chat") { showChatTools() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
@@ -137,7 +172,7 @@ class MainActivity : Activity() {
             AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> web.reload(); 6 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
         }
         item("Open Discord in browser", "Use your external browser") { startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app"))) }
-        item("About & limitations", "Compatibility, privacy and feature details") { AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Independent Android Discord WebView with local customisations. It cannot grant genuine Discord badges or Nitro. Discord mobile does not expose the desktop RPC IPC interface, so Rich Presence here is a local preview. Vencord, Revenge and Aliucord plugins use different runtimes and are not directly compatible.").setPositiveButton("OK",null).show() }
+        item("About & limitations", "Compatibility, privacy and feature details") { AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Independent Android Discord WebView with the official Vencord browser userscript bundled at build time. Vencord plugins that depend on desktop-only native APIs may not work. Genuine Nitro and account badges cannot be granted by a client mod. Live Android Rich Presence is supported by Discord Social SDK 1.10+ and needs a registered Application ID and SDK package.").setPositiveButton("OK",null).show() }
         val scroll = ScrollView(this).apply { addView(panel) }
         val dialog = AlertDialog.Builder(this).setView(scroll).create()
         dialog.show()
@@ -222,7 +257,7 @@ class MainActivity : Activity() {
         val large = EditText(this).apply { setText(prefs.getString("rpc_large", "")); hint = "Large image key (optional)" }
         val small = EditText(this).apply { setText(prefs.getString("rpc_small", "")); hint = "Small image key (optional)" }
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0); addView(app); addView(details); addView(state); addView(large); addView(small) }
-        AlertDialog.Builder(this).setTitle("Rich Presence • activity builder").setMessage("Build and preview an activity configuration. Android Discord does not expose desktop RPC, so this cannot publish a live status by itself.").setView(box)
+        AlertDialog.Builder(this).setTitle("Rich Presence • activity builder").setMessage("This editor saves your activity details. Live Android Rich Presence uses Discord Social SDK 1.10+ and requires your Discord Application ID plus the official Android SDK package.").setView(box)
             .setPositiveButton("Save & preview") { _, _ ->
                 prefs.edit().putString("rpc_name",app.text.toString()).putString("rpc_details",details.text.toString()).putString("rpc_state",state.text.toString()).putString("rpc_large",large.text.toString()).putString("rpc_small",small.text.toString()).apply()
                 showRPCPreview()
