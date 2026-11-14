@@ -168,6 +168,7 @@ class MainActivity : Activity() {
         item("Rich Presence", "Configure Discord Rich Presence") { showRPC() }
         item("Chat tools", "Quick reactions, hide upsells and compact chat") { showChatTools() }
         item("Message studio", "Format messages, manage reusable snippets and copy templates") { showMessageStudio() }
+        item("Snippet vault", "Save reusable replies, templates and formatted text") { showSnippetVault() }
         item("Developer toolbox", "Format JSON, encode text, decode Base64 and inspect Discord IDs") { showDeveloperToolbox() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Browser tools", "Back, forward, find, desktop mode, reload and cache") {
@@ -624,6 +625,56 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    private fun showSnippetVault() {
+        fun load(): org.json.JSONArray = try {
+            org.json.JSONArray(prefs.getString("snippet_vault", "[]") ?: "[]")
+        } catch (_: Exception) { org.json.JSONArray() }
+
+        fun refresh() {
+            val data = load()
+            val labels = Array(data.length()) { i ->
+                val item = data.optJSONObject(i)
+                (item?.optString("title") ?: "Untitled") + "  •  " + (item?.optString("body") ?: "").take(45)
+            }
+            AlertDialog.Builder(this).setTitle("Snippet vault")
+                .setItems(labels) { _, index ->
+                    val item = data.optJSONObject(index) ?: return@setItems
+                    val body = item.optString("body")
+                    AlertDialog.Builder(this).setTitle(item.optString("title"))
+                        .setMessage(body)
+                        .setPositiveButton("Copy") { _, _ ->
+                            val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText(item.optString("title"), body))
+                            Toast.makeText(this, "Snippet copied", Toast.LENGTH_SHORT).show()
+                        }
+                        .setNeutralButton("Delete") { _, _ ->
+                            val updated = org.json.JSONArray()
+                            for (i in 0 until data.length()) if (i != index) updated.put(data.get(i))
+                            prefs.edit().putString("snippet_vault", updated.toString()).apply()
+                            Toast.makeText(this, "Snippet deleted", Toast.LENGTH_SHORT).show()
+                            refresh()
+                        }.setNegativeButton("Close", null).show()
+                }
+                .setPositiveButton("Add snippet") { _, _ ->
+                    val title = EditText(this).apply { hint = "Snippet name" }
+                    val body = EditText(this).apply { hint = "Reusable message"; minLines = 4; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
+                    val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(8), dp(18), 0); addView(title); addView(body) }
+                    AlertDialog.Builder(this).setTitle("New snippet").setView(box)
+                        .setPositiveButton("Save") { _, _ ->
+                            val name = title.text.toString().trim()
+                            val text = body.text.toString()
+                            if (name.isNotBlank() && text.isNotBlank()) {
+                                val updated = load().put(org.json.JSONObject().put("title", name).put("body", text))
+                                prefs.edit().putString("snippet_vault", updated.toString()).apply()
+                                Toast.makeText(this, "Snippet saved", Toast.LENGTH_SHORT).show()
+                            } else Toast.makeText(this, "Enter a name and message", Toast.LENGTH_SHORT).show()
+                        }.setNegativeButton("Cancel", null).show()
+                }
+                .setNegativeButton("Close", null).show()
+        }
+        refresh()
     }
 
     private fun showMessageStudio() {
