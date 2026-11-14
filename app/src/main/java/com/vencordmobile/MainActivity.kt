@@ -275,14 +275,17 @@ class MainActivity : Activity() {
     private fun formatDiscordMessage() {
         val input = EditText(this).apply { hint = "Write or paste your message"; minLines = 4; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
         val formats = arrayOf("Bold", "Italic", "Underline", "Strikethrough", "Spoiler", "Inline code", "Code block", "Quote")
-        AlertDialog.Builder(this).setTitle("Message formatter").setView(input).setItems(formats) { _, which ->
-            val value = input.text.toString()
-            if(value.isBlank()) { Toast.makeText(this,"Enter some text first",Toast.LENGTH_SHORT).show(); return@setItems }
-            val formatted = when(which) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__$value__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```\n$value\n```"; else -> value.lines().joinToString("\n") { "> $it" } }
-            val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            cm.setPrimaryClip(android.content.ClipData.newPlainText("Formatted Discord message",formatted))
-            Toast.makeText(this,"Formatted text copied",Toast.LENGTH_SHORT).show()
-        }.setNegativeButton("Cancel",null).show()
+        val picker = Spinner(this).apply { adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, formats) }
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20),dp(8),dp(20),0); addView(input); addView(picker) }
+        AlertDialog.Builder(this).setTitle("Message formatter").setView(box)
+            .setPositiveButton("Copy formatted text") { _, _ ->
+                val value = input.text.toString()
+                if(value.isBlank()) { Toast.makeText(this,"Enter some text first",Toast.LENGTH_SHORT).show(); return@setPositiveButton }
+                val formatted = when(picker.selectedItemPosition) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__$value__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```\n$value\n```"; else -> value.lines().joinToString("\n") { "> $it" } }
+                val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("Formatted Discord message",formatted))
+                Toast.makeText(this,"Formatted text copied",Toast.LENGTH_SHORT).show()
+            }.setNegativeButton("Cancel",null).show()
     }
 
     private fun createDiscordTimestamp() {
