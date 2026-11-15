@@ -38,17 +38,21 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                 thread {
                     try {
                         val raw=toRawUrl(entered)
-                        val conn=(URL(raw).openConnection() as HttpURLConnection).apply { connectTimeout=15000; readTimeout=20000; setRequestProperty("User-Agent","VencordMobile-PluginLoader") }
-                        val status=conn.responseCode
-                        if(status !in 200..299) throw Exception("HTTP $status")
-                        val code=conn.inputStream.bufferedReader().use { it.readText() }
-                        conn.disconnect()
-                        if(code.isBlank() || code.length>500000) throw Exception("Empty file or larger than 500 KB")
+                        val downloaded=SecurePluginFetcher.fetch(raw,500000,"NEXORA-PluginLoader")
+                        val code=downloaded.text
+                        if(code.isBlank()) throw Exception("The plugin file is empty")
                         val name=raw.substringAfterLast('/').substringBefore('?').removeSuffix(".js").ifBlank{"Imported plugin"}
                         activity.runOnUiThread {
-                            a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
-                            save(a)
-                            Toast.makeText(activity,"Installed: $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                            val existing=(0 until a.length()).any { index ->
+                                a.optJSONObject(index)?.optString("source","") == entered
+                            }
+                            if(existing) {
+                                Toast.makeText(activity,"That plugin URL is already installed",Toast.LENGTH_LONG).show()
+                            } else {
+                                a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
+                                save(a)
+                                Toast.makeText(activity,"Installed: $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                            }
                         }
                     } catch(e:Exception) {
                         activity.runOnUiThread { AlertDialog.Builder(activity).setTitle("Plugin download failed").setMessage(e.message ?: "Could not download this URL. Use a direct public .js file link.").setPositiveButton("OK",null).show() }
