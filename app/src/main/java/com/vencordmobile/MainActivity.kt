@@ -1449,11 +1449,16 @@ class MainActivity : Activity() {
                 }
                 // onPageFinished may fire more than once for a single document. Track each
                 // plugin in that document so its listeners and observers are not duplicated.
-                val identity = org.json.JSONObject()
-                    .put("source", p.optString("source", ""))
-                    .put("name", p.optString("name", ""))
-                    .put("code", code)
-                    .toString().hashCode().toString()
+                val identity = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(
+                        org.json.JSONObject()
+                            .put("source", p.optString("source", ""))
+                            .put("name", p.optString("name", ""))
+                            .put("code", code)
+                            .toString()
+                            .toByteArray(Charsets.UTF_8)
+                    )
+                    .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
                 val key = org.json.JSONObject.quote(identity)
                 web.evaluateJavascript(
                     "(function(){var r=window.__NEXORA_PLUGIN_RUNS__||(window.__NEXORA_PLUGIN_RUNS__={});" +
