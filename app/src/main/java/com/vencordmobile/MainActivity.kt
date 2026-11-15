@@ -1039,6 +1039,16 @@ class MainActivity : Activity() {
                 "larger_channel_names" to "Larger channel labels",
                 "dim_avatars" to "Dim avatars",
                 "hide_bot_badges" to "Hide bot labels",
+                "hide_channel_icons" to "Hide channel icons",
+                "dim_inactive_channels" to "Dim inactive channels",
+                "compact_embeds" to "Compact embed cards",
+                "hide_embed_author" to "Hide embed author rows",
+                "hide_embed_footer" to "Hide embed footers",
+                "hide_attachment_names" to "Hide attachment filenames",
+                "hide_member_roles" to "Hide member role chips",
+                "hide_channel_categories" to "Hide channel category headers",
+                "dim_mention_pings" to "Dim mention highlights",
+                "hide_reaction_counts" to "Hide reaction counts",
                 "readable_line_height" to "Increase message line spacing",
                 "larger_click_targets" to "Larger interactive targets",
                 "show_focus_outline" to "Visible keyboard focus outline",
@@ -1685,6 +1695,16 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("feature_larger_channel_names",false)) rules.append("[class*=channelName],[class*=name]{font-size:1.08em!important}")
         if(prefs.getBoolean("feature_dim_avatars",false)) rules.append("[class*=avatar]{opacity:.78!important}")
         if(prefs.getBoolean("feature_hide_bot_badges",false)) rules.append("[class*=botTag],[class*=botBadge]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_channel_icons",false)) rules.append("[class*=channel] [class*=icon],[class*=channelIcon]{display:none!important}")
+        if(prefs.getBoolean("feature_dim_inactive_channels",false)) rules.append("[class*=channel] [class*=name]{opacity:.65!important}")
+        if(prefs.getBoolean("feature_compact_embeds",false)) rules.append("[class*=embedWrapper]{max-width:480px!important;max-height:260px!important;overflow:auto!important}")
+        if(prefs.getBoolean("feature_hide_embed_author",false)) rules.append("[class*=embedAuthor],[class*=embedProvider]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_embed_footer",false)) rules.append("[class*=embedFooter],[class*=embedTimestamp]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_attachment_names",false)) rules.append("[class*=attachmentName],[class*=filename]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_member_roles",false)) rules.append("[class*=rolePill],[class*=roleTag]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_channel_categories",false)) rules.append("[class*=containerDefault] [class*=header]{display:none!important}")
+        if(prefs.getBoolean("feature_dim_mention_pings",false)) rules.append("[class*=mention]{opacity:.7!important}")
+        if(prefs.getBoolean("feature_hide_reaction_counts",false)) rules.append("[class*=reaction] [class*=count]{display:none!important}")
         if(prefs.getBoolean("feature_compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("feature_cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
         if(prefs.getBoolean("feature_bigtext",false)) rules.append("[class*=messageContent]{font-size:16px!important;line-height:1.45!important}")
