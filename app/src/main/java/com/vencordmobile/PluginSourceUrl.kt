@@ -11,6 +11,9 @@ internal object PluginSourceUrl {
         require(parsed.protocol.equals("https", ignoreCase = true)) { "Only HTTPS URLs are allowed" }
         require(parsed.userInfo == null && parsed.ref == null) { "Plugin URLs cannot contain credentials or fragments" }
         val host = parsed.host.lowercase(Locale.ROOT).removeSuffix(".")
+        if (host == "github.com" || host == "raw.githubusercontent.com") {
+            require(parsed.port == -1 || parsed.port == 443) { "GitHub plugin URLs must use the standard HTTPS port" }
+        }
         if (host == "github.com" && parsed.path.contains("/blob/")) {
             val parts = parsed.path.removePrefix("/").split("/")
             require(parts.size >= 5 && parts[0].isNotBlank() && parts[1].isNotBlank() && parts[2] == "blob" && parts[3].isNotBlank()) { "Use a GitHub link to a specific .js file" }
