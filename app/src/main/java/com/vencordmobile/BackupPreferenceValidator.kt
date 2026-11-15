@@ -31,6 +31,7 @@ internal object BackupPreferenceValidator {
                     "theme" -> it in 0..10
                     "font_choice" -> it in 0..5
                     "rpc_type" -> it in 0..5
+                    "page_text_zoom" -> it in 75..200
                     else -> false
                 }
             }
