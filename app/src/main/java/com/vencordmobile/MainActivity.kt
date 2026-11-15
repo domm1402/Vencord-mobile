@@ -1420,7 +1420,25 @@ class MainActivity : Activity() {
             val p = arr.optJSONObject(i) ?: continue
             if (p.optBoolean("enabled", false)) {
                 val code = p.optString("code", "")
-                web.evaluateJavascript("(function(){try{" + code + "}catch(e){console.error('VCM plugin error',e)}})();", null)
+                if (code.isBlank() || code.toByteArray(Charsets.UTF_8).size > 500000) {
+                    android.util.Log.w("NEXORA", "Skipped invalid or oversized plugin: " + p.optString("name", "Unnamed"))
+                    continue
+                }
+                // onPageFinished may fire more than once for a single document. Track each
+                // plugin in that document so its listeners and observers are not duplicated.
+                val identity = org.json.JSONObject()
+                    .put("source", p.optString("source", ""))
+                    .put("name", p.optString("name", ""))
+                    .put("code", code)
+                    .toString().hashCode().toString()
+                val key = org.json.JSONObject.quote(identity)
+                web.evaluateJavascript(
+                    "(function(){var r=window.__NEXORA_PLUGIN_RUNS__||(window.__NEXORA_PLUGIN_RUNS__={});" +
+                        "var k=" + key + ";if(r[k])return;r[k]=true;" +
+                        "try{(function(){" + code + "}).call(window)}catch(e){delete r[k];" +
+                        "console.error('NEXORA plugin error ('+k+')',e)}})();",
+                    null
+                )
             }
         }
     }
