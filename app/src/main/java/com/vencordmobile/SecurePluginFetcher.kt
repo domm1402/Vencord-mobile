@@ -16,7 +16,22 @@ object SecurePluginFetcher {
         require(url.protocol.equals("https", ignoreCase = true)) {
             "Only HTTPS plugin sources are allowed"
         }
-        require(url.host.isNotBlank()) { "Plugin URL needs a valid host" }
+        val host = url.host.lowercase(java.util.Locale.ROOT).removeSuffix(".")
+        require(host.length in 1..253 && host.contains(".")) { "Plugin URL needs a public DNS hostname" }
+        require(host.split(".").all { label ->
+            label.length in 1..63 && label.matches(Regex("[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"))
+        }) { "Plugin URL contains an invalid hostname" }
+        // Never fetch from loopback, private-style local names, or IP-literal hosts.
+        // This prevents obvious local-network/localhost targets; DNS rebinding is
+        // still outside this URL-only check and is not claimed to be prevented.
+        require(!host.contains(":") && !host.matches(Regex("[0-9.]+")) &&
+            !host.matches(Regex("(?i)(0x[0-9a-f]+|[0-9]+)"))) {
+            "Plugin sources must use a DNS hostname, not an IP address"
+        }
+        val localSuffixes = setOf("localhost", "local", "localdomain", "lan", "home", "internal", "test", "invalid")
+        require(host != "localhost" && localSuffixes.none { host == it || host.endsWith(".$it") }) {
+            "Local or reserved hostnames are not allowed for plugin sources"
+        }
         require(url.userInfo == null) { "URLs containing embedded credentials are not allowed" }
         require(url.ref == null) { "Plugin URLs must not contain fragments" }
         require(url.port == -1 || url.port in 1..65535) { "Plugin URL has an invalid port" }
