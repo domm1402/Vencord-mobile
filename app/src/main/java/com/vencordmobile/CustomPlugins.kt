@@ -63,7 +63,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                                     .setPositiveButton("Install") { _, _ ->
                                         a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
                                         save(a)
-                                        Toast.makeText(activity,"Installed: $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                                        Toast.makeText(activity,"Installed: $name. Discord is reloading to apply it.",Toast.LENGTH_LONG).show()
                                     }
                                     .setNegativeButton("Cancel",null).show()
                             }
@@ -87,13 +87,13 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     private fun manage(a: JSONArray, index: Int) {
         val plugin = a.optJSONObject(index) ?: return
         val enabled = plugin.optBoolean("enabled", false)
-        val actions = arrayOf(if(enabled) "Disable plugin" else "Enable plugin", "Edit plugin code", "Run enabled plugins now", "Delete plugin")
+        val actions = arrayOf(if(enabled) "Disable plugin" else "Enable plugin", "Edit plugin code", "Reload Discord and run enabled plugins", "Delete plugin")
         AlertDialog.Builder(activity).setTitle(plugin.optString("name", "Plugin"))
             .setItems(actions) { _, action ->
                 when(action) {
-                    0 -> { plugin.put("enabled", !enabled); save(a); Toast.makeText(activity, if(!enabled) "Plugin enabled" else "Plugin disabled", Toast.LENGTH_SHORT).show() }
+                    0 -> { plugin.put("enabled", !enabled); save(a); Toast.makeText(activity, if(!enabled) "Enabled. Reloading Discord…" else "Disabled. Reloading Discord…", Toast.LENGTH_SHORT).show() }
                     1 -> edit(a, index)
-                    2 -> { onChanged(a); Toast.makeText(activity,"Enabled plugins reloaded",Toast.LENGTH_SHORT).show() }
+                    2 -> { onChanged(a); Toast.makeText(activity,"Discord is reloading to run enabled plugins",Toast.LENGTH_SHORT).show() }
                     3 -> AlertDialog.Builder(activity).setMessage("Delete ${plugin.optString("name", "this plugin")}? ").setPositiveButton("Delete") { _, _ -> a.remove(index); save(a) }.setNegativeButton("Cancel",null).show()
                 }
             }.show()
@@ -120,7 +120,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                 old.optString("source","").takeIf { it.isNotBlank() }?.let { p.put("source",it) }
                 if(index<0) a.put(p) else a.put(index,p)
                 save(a)
-                Toast.makeText(activity,"Saved. Reload Discord to run it.",Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity,"Saved. Discord is reloading to apply changes.",Toast.LENGTH_SHORT).show()
             }.setNegativeButton("Cancel",null)
         if(index>=0) builder.setNeutralButton("Delete") { _,_ -> a.remove(index); save(a) }
         builder.show()
