@@ -1001,8 +1001,18 @@ class MainActivity : Activity() {
                 "hide_animated_emoji" to "Reduce animated emoji",
                 "hide_link_previews" to "Hide link preview cards",
                 "hide_poll_bars" to "Hide poll result bars",
-                "hide_call_controls" to "Hide call control overlays"
-            )
+                "hide_call_controls" to "Hide call control overlays",
+                "hide_stage" to "Hide stage / event panels",
+                "hide_status" to "Hide online status dots",
+                "hide_member_events" to "Hide member activity cards",
+                "hide_message_dividers" to "Hide message separators",
+                "hide_inline_code" to "Hide inline code chips",
+                "hide_spoilers" to "Keep spoiler text concealed",
+                "hide_sticker_messages" to "Hide sticker messages",
+                "highlight_mentions" to "Highlight @mentions",
+                "underline_links" to "Underline links for clarity",
+                "square_corners" to "Use square-corner interface",
+                "disable_hover" to "Disable hover effects"\n            )
         )
         val all = groups.values.flatten()
         val labels = all.map { it.second }.toTypedArray()
@@ -1576,6 +1586,17 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("feature_hide_link_previews",false)) rules.append("[class*=embedWrapper],[class*=linkPreview]{display:none!important}")
         if(prefs.getBoolean("feature_hide_poll_bars",false)) rules.append("[class*=pollResults],[class*=answerPercentage]{display:none!important}")
         if(prefs.getBoolean("feature_hide_call_controls",false)) rules.append("[class*=callContainer] [class*=control]{opacity:.25!important}")
+        if(prefs.getBoolean("feature_hide_stage",false)) rules.append("[class*=stageContainer],[class*=eventPreview],[class*=guildScheduledEvent]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_status",false)) rules.append("[class*=status],[class*=presence]{visibility:hidden!important}")
+        if(prefs.getBoolean("feature_hide_member_events",false)) rules.append("[class*=activityPanel],[class*=memberActivity]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_message_dividers",false)) rules.append("[class*=divider],[class*=groupStart]{border:0!important;margin-top:0!important}")
+        if(prefs.getBoolean("feature_hide_inline_code",false)) rules.append("[class*=inlineCode]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_spoilers",false)) rules.append("[class*=spoilerText]{filter:blur(6px)!important}")
+        if(prefs.getBoolean("feature_hide_sticker_messages",false)) rules.append("[class*=stickerAsset]{display:none!important}")
+        if(prefs.getBoolean("feature_highlight_mentions",false)) rules.append("[class*=mention]{background:rgba(124,92,255,.28)!important;outline:1px solid rgba(124,92,255,.55)!important}")
+        if(prefs.getBoolean("feature_underline_links",false)) rules.append("a[href]{text-decoration:underline!important;text-underline-offset:2px!important}")
+        if(prefs.getBoolean("feature_square_corners",false)) rules.append("*{border-radius:0!important}")
+        if(prefs.getBoolean("feature_disable_hover",false)) rules.append("*:hover{transition:none!important;filter:none!important}")
         if(prefs.getBoolean("feature_compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("feature_cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
         if(prefs.getBoolean("feature_bigtext",false)) rules.append("[class*=messageContent]{font-size:16px!important;line-height:1.45!important}")
