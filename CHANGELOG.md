@@ -1,3 +1,6 @@
+## 2.23 — Navigation gesture shortcut
+- Long-press the floating NEXORA control to open browser navigation instantly; tap still opens the main hub.
+
 ## 2.22 — Multilingual typography pack
 - Added a bundled Noto Sans CJK typeface covering Chinese, Japanese and Korean text offline, with a typography selector.
 - Font assets are served only through WebViewAssetLoader's app-assets origin, not general file access in Discord.
