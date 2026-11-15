@@ -269,7 +269,9 @@ class MainActivity : Activity() {
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL; setPadding(dp(15),dp(14),dp(15),dp(14))
                 background = GradientDrawable().apply { setColor(Color.rgb(25,29,43)); cornerRadius = dp(17).toFloat(); setStroke(dp(1),Color.rgb(43,52,76)) }
-                isClickable = true; isFocusable = true; setOnClickListener { dialog.dismiss(); action() }
+                isClickable = true; isFocusable = true
+                contentDescription = "$title. $subtitle"
+                setOnClickListener { dialog.dismiss(); action() }
             }
             card.addView(label(title,15f,Color.WHITE,true))
             card.addView(label(subtitle,11f,Color.rgb(166,177,202)).apply { setPadding(0,dp(5),0,0) })
@@ -312,9 +314,15 @@ class MainActivity : Activity() {
         sections.forEach { section ->
             val tab = Button(this).apply {
                 text = section; textSize = 10f; isAllCaps = false
+                contentDescription = section
+                isSelected = section == "Home"
                 setTextColor(Color.WHITE)
                 background = GradientDrawable().apply { setColor(Color.rgb(29,35,53)); cornerRadius = dp(12).toFloat() }
-                setOnClickListener { render(section); pageStatus.text = "NEXORA  •  " + section.uppercase() }
+                setOnClickListener {
+                    render(section)
+                    pageStatus.text = "NEXORA  •  " + section.uppercase()
+                    for (index in 0 until tabs.childCount) tabs.getChildAt(index).isSelected = index == sections.indexOf(section)
+                }
             }
             val lp = LinearLayout.LayoutParams(0,dp(43),1f); lp.setMargins(dp(2),0,dp(2),0); tabs.addView(tab,lp)
         }
