@@ -1024,6 +1024,18 @@ class MainActivity : Activity() {
                 "high_contrast" to "High contrast text",
                 "sticky_composer" to "Keep message composer visible",
                 "hide_thread_buttons" to "Hide thread action buttons",
+                "hide_animated_backgrounds" to "Disable animated backgrounds",
+                "hide_banners" to "Hide promotional banners",
+                "hide_channel_topic" to "Hide channel topic headers",
+                "hide_unread_pills" to "Hide unread count pills",
+                "hide_online_members" to "Hide online member rows",
+                "hide_server_labels" to "Hide server list text labels",
+                "disable_backdrop_blur" to "Disable backdrop blur",
+                "transparent_panels" to "Make panels transparent",
+                "focus_mode" to "Focus mode: quiet chat",
+                "high_contrast" to "High contrast text",
+                "sticky_composer" to "Keep message composer visible",
+                "hide_thread_buttons" to "Hide thread action buttons",
                 "hide_animated_backgrounds" to "Disable animated backgrounds"
             )
         )
