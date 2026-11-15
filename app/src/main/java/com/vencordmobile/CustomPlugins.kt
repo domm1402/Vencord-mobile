@@ -159,7 +159,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                 val result=SecurePluginFetcher.fetch(PluginSourceUrl.toRawUrl(source),500000,"NEXORA-PluginUpdater")
                 require(result.text.isNotBlank()){"Downloaded source is empty"}
                 postToUi {
-                    AlertDialog.Builder(activity).setTitle("Review update: "+plugin.optString("name","Plugin")).setMessage("Final URL: "+result.finalUrl+"\nNew size: "+result.text.toByteArray(Charsets.UTF_8).size+" bytes\n\nReplace installed code with this source?").setPositiveButton("Update") { _, _ ->
+                    AlertDialog.Builder(activity).setTitle("Review update: "+plugin.optString("name","Plugin")).setMessage("Final URL: "+result.finalUrl+"\nNew size: "+result.text.toByteArray(Charsets.UTF_8).size+" bytes\n\nSource scan (heuristic):\n"+PluginRiskAnalyzer.summary(result.text)+"\n\nReplace installed code with this source?").setPositiveButton("Update") { _, _ ->
                         plugin.put("code",result.text).put("enabled",true)
                         all.put(index,plugin)
                         save(all)
