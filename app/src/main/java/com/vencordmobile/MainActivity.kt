@@ -1625,7 +1625,13 @@ class MainActivity : Activity() {
             arrayOf("#2b1719","#3a2023","#1c1012","#fb7185","#fff1f2","#e6a8ad"),
             arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0"),
             arrayOf("#242933","#303846","#1b2028","#88c0d0","#eceff4","#b8c2d0"),
-            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),\n            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),\n            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),\n            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),\n            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),\n            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),\n            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
+            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),
+            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),
+            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),
+            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),
+            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),
+            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),
+            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
         )
         val p = palettes[theme].clone()
         prefs.getString("custom_accent", "")?.takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.let { p[3] = it }
