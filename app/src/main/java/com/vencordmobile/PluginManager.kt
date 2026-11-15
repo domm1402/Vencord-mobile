@@ -13,6 +13,12 @@ import kotlin.concurrent.thread
 class PluginManager(private val activity: Activity, private val openFeature: (Int) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
     private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview")
+    private fun postToUi(action: () -> Unit) {
+        if (activity.isFinishing || activity.isDestroyed) return
+        postToUi {
+            if (!activity.isFinishing && !activity.isDestroyed) action()
+        }
+    }
     fun open() {
         AlertDialog.Builder(activity).setTitle("NEXORA • Extensions")
             .setMessage("Manage local add-ons and interface tools. Downloaded plugins execute inside your signed-in Discord page and may access page data. Only install code you trust. Desktop Vencord, Revenge and Aliucord packages are not directly compatible.")
@@ -50,7 +56,7 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
                 val body = SecurePluginFetcher.fetch(manifestUrl,1000000,"NEXORA-PluginManager").text
                 val entries = JSONObject(body).optJSONArray("plugins") ?: throw Exception("Manifest needs a plugins array")
                 activity.runOnUiThread {
-                    if (entries.length() == 0) { Toast.makeText(activity,"No plugins in this repository",Toast.LENGTH_SHORT).show(); return@runOnUiThread }
+                    if (entries.length() == 0) { Toast.makeText(activity,"No plugins in this repository",Toast.LENGTH_SHORT).show(); return@postToUi }
                     val names = Array(entries.length()) { i -> val p=entries.optJSONObject(i) ?: JSONObject(); p.optString("name","Unnamed plugin") + "  •  " + p.optString("description", "No description") }
                     AlertDialog.Builder(activity).setTitle("Repository plugins").setItems(names) { _, index -> installRepositoryPlugin(entries.optJSONObject(index) ?: JSONObject()) }.setNegativeButton("Close",null).show()
                 }
