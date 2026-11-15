@@ -19,12 +19,12 @@ class DownloadFilenameTest {
     }
 
     @Test fun removesBidiAndDeleteControls() {
-        assertEquals("abcd.txt", safeDownloadFileName("ab\\u202ecd\\u007f.txt"))
+        assertEquals("abcd.txt", safeDownloadFileName("ab\u202ecd\u007f.txt"))
     }
 
     @Test fun removesZeroWidthAndUnicodeFormatCharacters() {
-        assertEquals("report.txt", safeDownloadFileName("re\\u200bport\\u00ad.txt"))
-        assertEquals("a_b.txt", safeDownloadFileName("a\\u0085b.txt"))
+        assertEquals("report.txt", safeDownloadFileName("re\u200bport\u00ad.txt"))
+        assertEquals("a_b.txt", safeDownloadFileName("a\u0085b.txt"))
     }
 
     @Test fun boundsFilenameLength() {
