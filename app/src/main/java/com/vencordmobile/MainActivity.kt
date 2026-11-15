@@ -583,7 +583,7 @@ class MainActivity : Activity() {
     }
 
     private fun showThemes() {
-        val themes = arrayOf("Discord blurple dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange", "Discord light", "Graphite", "Rose", "Crimson", "Mint")
+        val themes = arrayOf("Discord blurple dark", "AMOLED black", "Midnight purple", "Ocean blue", "Forest green", "Sunset orange", "Discord light", "Graphite", "Rose", "Crimson", "Mint", "Nord frost", "Dracula", "Catppuccin mocha", "Cyberpunk neon", "Lavender haze", "Arctic cyan", "Solarized dark", "Matrix green", "Cherry blossom")
         val current = prefs.getInt("theme", 0).coerceIn(0, themes.lastIndex)
         AlertDialog.Builder(this).setTitle("Colour theme")
             .setSingleChoiceItems(themes, current) { d, which -> prefs.edit().putInt("theme", which).apply(); applyCustomizations(); d.dismiss() }
@@ -1493,7 +1493,7 @@ class MainActivity : Activity() {
     }
 
     private fun applyCustomizations() {
-        val theme = prefs.getInt("theme", 0).coerceIn(0, 10)
+        val theme = prefs.getInt("theme", 0).coerceIn(0, 19)
         val palettes = arrayOf(
             arrayOf("#313338","#2b2d31","#1e1f22","#5865f2","#f2f3f5","#b5bac1"),
             arrayOf("#000000","#080808","#101010","#8b5cf6","#f5f5f5","#a1a1aa"),
@@ -1505,14 +1505,14 @@ class MainActivity : Activity() {
             arrayOf("#20242b","#292e38","#171a20","#9ca3af","#f3f4f6","#aab2c0"),
             arrayOf("#271b24","#35232f","#1b1119","#f472b6","#fff1f7","#d6a8c0"),
             arrayOf("#2b1719","#3a2023","#1c1012","#fb7185","#fff1f2","#e6a8ad"),
-            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0")
+            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0"),\n            arrayOf("#242933","#303846","#1b2028","#88c0d0","#eceff4","#b8c2d0"),\n            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),\n            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),\n            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),\n            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),\n            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),\n            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),\n            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
         )
         val p = palettes[theme].clone()
         prefs.getString("custom_accent", "")?.takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.let { p[3] = it }
         val rules = StringBuilder()
         rules.append(":root{color-scheme:" + (if(theme == 6) "light" else "dark") + ";}:root,body,#app-mount,.theme-dark,.theme-light{--background-primary:"+p[0]+"!important;--background-secondary:"+p[1]+"!important;--background-secondary-alt:"+p[1]+"!important;--background-tertiary:"+p[2]+"!important;--background-floating:"+p[1]+"!important;--channeltextarea-background:"+p[2]+"!important;--modal-background:"+p[1]+"!important;--header-primary:"+p[4]+"!important;--text-normal:"+p[4]+"!important;--header-secondary:"+p[5]+"!important;--text-muted:"+p[5]+"!important;--interactive-normal:"+p[5]+"!important;--brand-experiment:"+p[3]+"!important;--brand-experiment-560:"+p[3]+"!important;--button-secondary-background:"+p[2]+"!important;--scrollbar-thin-thumb:"+p[5]+"!important;}")
         rules.append("html,body,#app-mount{background:"+p[0]+"!important;color:"+p[4]+"!important;}")
-        val fontFamilies = arrayOf("system-ui, sans-serif", "Arial, sans-serif", "Georgia, serif", "'Trebuchet MS', sans-serif", "Verdana, sans-serif", "monospace")
+        val fontFamilies = arrayOf("system-ui, sans-serif", "Arial, sans-serif", "Georgia, serif", "'Trebuchet MS', sans-serif", "Verdana, sans-serif", "monospace", "'Courier New', monospace", "'Times New Roman', serif", "'Comic Sans MS', cursive", "Tahoma, sans-serif", "'Lucida Console', monospace", "'Palatino Linotype', serif")
         val font = fontFamilies[prefs.getInt("font_choice", 0).coerceIn(0, fontFamilies.lastIndex)]
         rules.append("body,#app-mount{font-family:"+font+"!important;}")
         if(prefs.getBoolean("compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
