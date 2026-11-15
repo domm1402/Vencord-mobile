@@ -137,16 +137,37 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     private fun manage(a: JSONArray, index: Int) {
         val plugin = a.optJSONObject(index) ?: return
         val enabled = plugin.optBoolean("enabled", false)
-        val actions = arrayOf(if(enabled) "Disable plugin" else "Enable plugin", "Edit plugin code", "Reload Discord and run enabled plugins", "Delete plugin")
-        AlertDialog.Builder(activity).setTitle(plugin.optString("name", "Plugin"))
-            .setItems(actions) { _, action ->
+        val source=plugin.optString("source","")
+        val actions=mutableListOf(if(enabled) "Disable plugin" else "Enable plugin","Edit plugin code","Reload Discord and run enabled plugins","Delete plugin")
+        if(source.startsWith("https://")) actions.add("Update from source URL")
+        AlertDialog.Builder(activity).setTitle(plugin.optString("name","Plugin"))
+            .setItems(actions.toTypedArray()) { _, action ->
                 when(action) {
-                    0 -> { plugin.put("enabled", !enabled); save(a); Toast.makeText(activity, if(!enabled) "Enabled. Reloading Discord…" else "Disabled. Reloading Discord…", Toast.LENGTH_SHORT).show() }
-                    1 -> edit(a, index)
-                    2 -> { onChanged(a); Toast.makeText(activity,"Discord is reloading to run enabled plugins",Toast.LENGTH_SHORT).show() }
-                    3 -> AlertDialog.Builder(activity).setMessage("Delete ${plugin.optString("name", "this plugin")}? ").setPositiveButton("Delete") { _, _ -> a.remove(index); save(a) }.setNegativeButton("Cancel",null).show()
+                    0 -> { plugin.put("enabled",!enabled);save(a);Toast.makeText(activity,if(!enabled)"Enabled. Reloading Discord…" else "Disabled. Reloading Discord…",Toast.LENGTH_SHORT).show() }
+                    1 -> edit(a,index)
+                    2 -> { onChanged(a);Toast.makeText(activity,"Discord is reloading to run enabled plugins",Toast.LENGTH_SHORT).show() }
+                    3 -> AlertDialog.Builder(activity).setMessage("Delete "+plugin.optString("name","this plugin")+"?").setPositiveButton("Delete") { _, _ -> a.remove(index);save(a) }.setNegativeButton("Cancel",null).show()
+                    4 -> updateFromSource(plugin,a,index)
                 }
             }.show()
+    }
+    private fun updateFromSource(plugin:JSONObject,all:JSONArray,index:Int) {
+        val source=plugin.optString("source","")
+        Toast.makeText(activity,"Checking plugin source…",Toast.LENGTH_SHORT).show()
+        thread {
+            try {
+                val result=SecurePluginFetcher.fetch(PluginSourceUrl.toRawUrl(source),500000,"NEXORA-PluginUpdater")
+                require(result.text.isNotBlank()){"Downloaded source is empty"}
+                postToUi {
+                    AlertDialog.Builder(activity).setTitle("Review update: "+plugin.optString("name","Plugin")).setMessage("Final URL: "+result.finalUrl+"\nNew size: "+result.text.toByteArray(Charsets.UTF_8).size+" bytes\n\nReplace installed code with this source?").setPositiveButton("Update") { _, _ ->
+                        plugin.put("code",result.text).put("enabled",true)
+                        all.put(index,plugin)
+                        save(all)
+                        Toast.makeText(activity,"Updated plugin. Reloading…",Toast.LENGTH_SHORT).show()
+                    }.setNegativeButton("Cancel",null).show()
+                }
+            } catch(e:Exception) { postToUi { AlertDialog.Builder(activity).setTitle("Update failed").setMessage(e.message ?: "Could not fetch update").setPositiveButton("OK",null).show() } }
+        }
     }
     private fun edit(a: JSONArray, index: Int) {
         val old = if(index>=0) a.optJSONObject(index) ?: JSONObject() else JSONObject()
