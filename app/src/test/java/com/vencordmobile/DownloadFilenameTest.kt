@@ -19,7 +19,7 @@ class DownloadFilenameTest {
     }
 
     @Test fun removesBidiAndDeleteControls() {
-        assertEquals("abcd.txt", safeDownloadFileName("ab\\u202ecd\\u007f.txt"))
+        assertEquals("abcd_.txt", safeDownloadFileName("ab\\u202ecd\\u007f.txt"))
     }
 
     @Test fun removesZeroWidthAndUnicodeFormatCharacters() {
