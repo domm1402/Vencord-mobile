@@ -312,7 +312,7 @@ class MainActivity : Activity() {
                     tile("Backup & restore","Export your Nexora settings") { backup() }
                 }
                 "Extensions" -> {
-                    tile("Plugin manager","Install and manage extensions") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { web.reload() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
+                    tile("Plugin manager","Install and manage extensions") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { web.reload() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC(); 6 -> BuiltinPlugins(this) { web.reload() }.open() } }.open() }
                     tile("Feature library","Toggle interface enhancements") { showFeatureLibrary() }
                     tile("Chat tools","Reactions, translation and message helpers") { showChatTools() }
                     tile("About compatibility","Understand what works and what is experimental") { showNexoraAbout() }
