@@ -704,7 +704,7 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Rich Presence Builder")
             .setView(scroll)
-            .setPositiveButton("Save & publish") { _, _ ->
+            .setPositiveButton("Save & test dispatch") { _, _ ->
                 val editor = prefs.edit()
                 fields.forEach { (key, input) -> editor.putString("rpc_$key", input.text.toString()) }
                 editor.putInt("rpc_type", typeSpinner.selectedItemPosition)
@@ -860,7 +860,7 @@ class MainActivity : Activity() {
                   pid: 1608,
                   socketId: 'RPC@VencordMobile'
                 });
-                return 'Activity event sent via ' + source;
+                return 'Local activity event dispatched via ' + source + '. Profile publication is not confirmed in this WebView client.';
               } catch (e) {
                 return 'Rich Presence error: ' + String(e && e.stack || e);
               }
