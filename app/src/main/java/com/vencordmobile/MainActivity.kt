@@ -139,7 +139,7 @@ class MainActivity : Activity() {
             try {
                 val downloadUri = android.net.Uri.parse(url)
                 require(downloadUri.scheme.equals("https", ignoreCase = true)) { "Only secure HTTPS downloads are allowed" }
-                val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
+                val filename = safeDownloadFileName(URLUtil.guessFileName(url, contentDisposition, mimeType))
                 val request = DownloadManager.Request(downloadUri).apply {
                     setMimeType(mimeType)
                     // Never forward Discord session cookies to third-party download hosts.
