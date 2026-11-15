@@ -49,6 +49,13 @@ jobs:
           gradle-version: '8.9'
       - name: Run security unit tests
         run: gradle testDebugUnitTest
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEXORA-unit-test-reports
+          path: app/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: ignore
       - name: Build debug APK
         run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
