@@ -55,6 +55,37 @@ class SecurePluginFetcherTest {
     }
 
     @Test
+    fun rejectsInvalidPorts() {
+        listOf(
+            "https://example.com:0/plugin.js",
+            "https://example.com:65536/plugin.js",
+            "https://example.com:99999/plugin.js"
+        ).forEach { source ->
+            assertThrows(IllegalArgumentException::class.java) {
+                SecurePluginFetcher.parseHttpsUrl(source)
+            }
+        }
+    }
+
+    @Test
+    fun acceptsExplicitHttpsPort() {
+        assertEquals(443, SecurePluginFetcher.parseHttpsUrl("https://example.com:443/plugin.js").port)
+    }
+
+    @Test
+    fun rejectsCaseInsensitiveAndTrailingDotLocalNames() {
+        listOf(
+            "https://LOCALHOST./plugin.js",
+            "https://router.LOCAL./plugin.js",
+            "https://service.INTERNAL/plugin.js"
+        ).forEach { source ->
+            assertThrows(IllegalArgumentException::class.java) {
+                SecurePluginFetcher.parseHttpsUrl(source)
+            }
+        }
+    }
+
+    @Test
     fun rejectsPlainHttpPluginSources() {
         assertThrows(IllegalArgumentException::class.java) {
             SecurePluginFetcher.parseHttpsUrl("http://example.com/plugin.js")
