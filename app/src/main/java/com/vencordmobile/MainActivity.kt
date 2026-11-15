@@ -1070,13 +1070,21 @@ class MainActivity : Activity() {
                 applyCustomizations()
                 Toast.makeText(this, "Feature library settings applied", Toast.LENGTH_SHORT).show()
             }
-            .setNeutralButton("Enable recommended") { _, _ ->
-                val recommended = setOf("compact", "cards", "hide_server_boost", "hide_discover", "hide_shop", "hide_gift", "hide_gif", "hide_stickers", "reduce_motion")
-                val editor = prefs.edit()
-                all.forEach { editor.putBoolean("feature_" + it.first, it.first in recommended) }
-                editor.apply()
-                applyCustomizations()
-                Toast.makeText(this, "Recommended features enabled", Toast.LENGTH_SHORT).show()
+            .setNeutralButton("Profiles") { _, _ ->
+                val profiles = linkedMapOf(
+                    "Recommended clean-up" to setOf("compact","cards","hide_server_boost","hide_discover","hide_shop","hide_gift","hide_gif","hide_stickers","reduce_motion"),
+                    "Focus mode" to setOf("focus_mode","hide_banners","hide_activity","hide_members","hide_typing","hide_thread_suggestions","hide_channel_guides","hide_unread_pills"),
+                    "Accessibility" to setOf("readable_line_height","larger_click_targets","show_focus_outline","high_contrast","underline_links","highlight_mentions"),
+                    "Minimal interface" to setOf("hide_attachments","hide_embeds","hide_reactions","hide_timestamps","hide_profile_banners","hide_animated_emoji","hide_link_previews","hide_poll_bars","hide_call_controls"),
+                    "Developer workspace" to setOf("wide_chat","line_wrap_code","hide_inline_code","force_left_align","larger_channel_names","sticky_composer")
+                )
+                AlertDialog.Builder(this).setTitle("Feature profiles").setItems(profiles.keys.toTypedArray()) { _, index ->
+                    val selected = profiles.values.elementAt(index)
+                    val editor = prefs.edit()
+                    all.forEach { editor.putBoolean("feature_" + it.first, it.first in selected) }
+                    editor.apply(); applyCustomizations()
+                    Toast.makeText(this, profiles.keys.elementAt(index) + " applied", Toast.LENGTH_SHORT).show()
+                }.setNegativeButton("Cancel",null).show()
             }
             .setNegativeButton("Close", null)
             .show()
