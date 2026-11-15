@@ -24,8 +24,10 @@ object SecurePluginFetcher {
         // Never fetch from loopback, private-style local names, or IP-literal hosts.
         // This prevents obvious local-network/localhost targets; DNS rebinding is
         // still outside this URL-only check and is not claimed to be prevented.
+        val ipLikeHex = host.split(".").any { it.matches(Regex("(?i)0x[0-9a-f]+")) } &&
+            host.split(".").all { it.matches(Regex("(?i)(0x[0-9a-f]+|[0-9]+)")) }
         require(!host.contains(":") && !host.matches(Regex("[0-9.]+")) &&
-            !host.matches(Regex("(?i)(0x[0-9a-f]+|[0-9]+)"))) {
+            !host.matches(Regex("(?i)(0x[0-9a-f]+|[0-9]+)")) && !ipLikeHex) {
             "Plugin sources must use a DNS hostname, not an IP address"
         }
         val localSuffixes = setOf("localhost", "local", "localdomain", "lan", "home", "internal", "test", "invalid")
