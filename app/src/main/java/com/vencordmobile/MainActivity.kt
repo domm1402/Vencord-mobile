@@ -314,7 +314,7 @@ class MainActivity : Activity() {
     }
 
     private fun showBrowserTools() {
-        val opts = arrayOf("Back","Forward","Find on page","Copy page URL","Desktop / mobile mode","Toggle reader mode","Page zoom","Reload","Clear cache")
+        val opts = arrayOf("Back","Forward","Find on page","Copy page URL","Desktop / mobile mode","Toggle reader mode","Page zoom","Reload","Clear cache","Download history")
         AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i ->
             when(i) {
                 0 -> if(web.canGoBack()) web.goBack()
@@ -326,8 +326,56 @@ class MainActivity : Activity() {
                 6 -> showPageZoom()
                 7 -> web.reload()
                 8 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show()
+                9 -> showDownloads()
             }
         }.show()
+    }
+
+    private fun showDownloads() {
+        val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        val cursor = manager.query(DownloadManager.Query())
+        val ids = ArrayList<Long>()
+        val labels = ArrayList<String>()
+        cursor.use {
+            val idCol = it.getColumnIndex(DownloadManager.COLUMN_ID)
+            val titleCol = it.getColumnIndex(DownloadManager.COLUMN_TITLE)
+            val statusCol = it.getColumnIndex(DownloadManager.COLUMN_STATUS)
+            val reasonCol = it.getColumnIndex(DownloadManager.COLUMN_REASON)
+            while (it.moveToNext()) {
+                val id = it.getLong(idCol)
+                val title = it.getString(titleCol) ?: "Downloaded file"
+                val status = it.getInt(statusCol)
+                val statusText = when (status) {
+                    DownloadManager.STATUS_SUCCESSFUL -> "Complete"
+                    DownloadManager.STATUS_FAILED -> "Failed (code " + it.getInt(reasonCol) + ")"
+                    DownloadManager.STATUS_RUNNING -> "Downloading"
+                    DownloadManager.STATUS_PAUSED -> "Paused"
+                    else -> "Queued"
+                }
+                ids.add(id)
+                labels.add(title + "\n" + statusText)
+            }
+        }
+        if (ids.isEmpty()) {
+            Toast.makeText(this, "No downloads yet", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this).setTitle("Downloads")
+            .setItems(labels.toTypedArray()) { _, index ->
+                val id = ids[index]
+                val uri = manager.getUriForDownloadedFile(id)
+                if (uri == null) {
+                    Toast.makeText(this, "This download is not ready to open", Toast.LENGTH_SHORT).show()
+                } else {
+                    val mime = manager.getMimeTypeForDownloadedFile(id) ?: "*/*"
+                    try {
+                        startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri, mime)
+                            .addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION))
+                    } catch (_: Exception) {
+                        Toast.makeText(this, "No app can open this file", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun showNexoraAbout() {
