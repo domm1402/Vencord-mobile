@@ -15,6 +15,14 @@ internal object PluginStoragePolicy {
             val plugin = plugins.optJSONObject(index) ?: return "Plugin entry $index is invalid"
             // optString coerces numbers/objects into strings. Require actual source text
             // so malformed imports cannot turn arbitrary JSON values into executable input.
+            val rawName = plugin.opt("name")
+            if (rawName != null && rawName !is String) return "Plugin entry $index has invalid name"
+            if ((rawName as? String)?.length ?: 0 > 80) return "Plugin entry $index name exceeds 80 characters"
+            val rawSource = plugin.opt("source")
+            if (rawSource != null && rawSource !is String) return "Plugin entry $index has invalid source URL"
+            if ((rawSource as? String)?.length ?: 0 > 2048) return "Plugin entry $index source URL is too long"
+            val rawEnabled = plugin.opt("enabled")
+            if (rawEnabled != null && rawEnabled !is Boolean) return "Plugin entry $index has invalid enabled flag"
             val rawCode = plugin.opt("code")
             if (rawCode !is String) return "Plugin entry $index has invalid code"
             val code = rawCode
