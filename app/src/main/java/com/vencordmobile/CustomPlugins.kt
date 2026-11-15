@@ -15,6 +15,12 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
     private fun load(): JSONArray = try { JSONArray(prefs.getString("custom_plugins", "[]")) } catch (_: Exception) { JSONArray() }
     private fun save(a: JSONArray) { prefs.edit().putString("custom_plugins", a.toString()).apply(); onChanged(a) }
+    private fun postToUi(action: () -> Unit) {
+        if (activity.isFinishing || activity.isDestroyed) return
+        postToUi {
+            if (!activity.isFinishing && !activity.isDestroyed) action()
+        }
+    }
     fun open() {
         val a = load()
         val names = Array(a.length() + 1) { i ->
