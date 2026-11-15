@@ -17,11 +17,20 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     private fun save(a: JSONArray) { prefs.edit().putString("custom_plugins", a.toString()).apply(); onChanged(a) }
     fun open() {
         val a = load()
-        val names = Array(a.length()) { i -> val p=a.optJSONObject(i); (if(p?.optBoolean("enabled",false)==true) "✓ " else "○ ")+(p?.optString("name","Plugin") ?: "Plugin") }
+        val names = Array(a.length() + 1) { i ->
+            if (i == 0) "＋ Add plugin manually" else {
+                val p=a.optJSONObject(i - 1)
+                (if(p?.optBoolean("enabled",false)==true) "✓ " else "○ ")+(p?.optString("name","Plugin") ?: "Plugin")
+            }
+        }
         AlertDialog.Builder(activity).setTitle("Plugins")
-            .setItems(names) { _, i -> manage(a, i) }
+            .setItems(names) { _, i -> if (i == 0) edit(a, -1) else manage(a, i - 1) }
             .setPositiveButton("Install from URL") { _, _ -> installUrl(a) }
-            .setNeutralButton("Add manually") { _, _ -> edit(a, -1) }
+            .setNeutralButton("Disable all") { _, _ ->
+                for (index in 0 until a.length()) a.optJSONObject(index)?.put("enabled", false)
+                save(a)
+                Toast.makeText(activity, "All plugins disabled", Toast.LENGTH_LONG).show()
+            }
             .setNegativeButton("Security info") { _, _ ->
                 AlertDialog.Builder(activity).setTitle("Plugin security")
                     .setMessage("Plugins execute JavaScript inside your logged-in Discord page and can access your account session/data. Only install sources you trust. This loader accepts direct JavaScript files or GitHub links to a .js file, not native Vencord/Revenge plugin packages.")
