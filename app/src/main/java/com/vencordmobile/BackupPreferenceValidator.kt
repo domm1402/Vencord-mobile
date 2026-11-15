@@ -8,7 +8,7 @@ internal object BackupPreferenceValidator {
         "hide_activity", "hide_embeds", "hide_attachments", "reduce_motion",
         "hide_sticker_buttons", "rpc_timestamps_enabled"
     )
-    private val integerKeys = setOf("theme", "font_choice", "rpc_type")
+    private val integerKeys = setOf("theme", "font_choice", "rpc_type", "page_text_zoom")
     private val stringKeys = setOf(
         "custom_accent", "css", "snippet_vault", "message_studio_draft",
         "bookmarks", "profile_badges"
