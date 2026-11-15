@@ -13,7 +13,7 @@ internal object PluginSourceUrl {
         val host = parsed.host.lowercase(Locale.ROOT).removeSuffix(".")
         if (host == "github.com" && parsed.path.contains("/blob/")) {
             val parts = parsed.path.removePrefix("/").split("/")
-            require(parts.size >= 5 && parts[2] == "blob") { "Use a GitHub link to a specific .js file" }
+            require(parts.size >= 5 && parts[0].isNotBlank() && parts[1].isNotBlank() && parts[2] == "blob" && parts[3].isNotBlank()) { "Use a GitHub link to a specific .js file" }
             require(parts.last().endsWith(".js", ignoreCase = true)) { "GitHub plugin links must point to a .js file" }
             return "https://raw.githubusercontent.com/${parts[0]}/${parts[1]}/${parts[3]}/" + parts.drop(4).joinToString("/")
         }
