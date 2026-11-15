@@ -12,7 +12,7 @@ NEXORA 2.2 added duplicate-safe plugin execution per page, bounded manual plugin
 
 - Discord web app in an Android WebView, with swipe refresh, Android file downloads, a native download history and Android file-picker support for uploads/attachments. Third-party links open outside the signed-in Discord WebView.
 - Modern dark Control Centre, mobile/desktop page mode, navigation and find-on-page.
-- Eleven built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 21 local chat/layout toggles.
+- Twenty built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 38 local chat/layout toggles.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
 - JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links, with bounded downloads, strict HTTPS URL validation, redirect protection and duplicate-install checks.
 - JSON plugin repository browser with the same secure download handling.
@@ -21,7 +21,7 @@ NEXORA 2.2 added duplicate-safe plugin execution per page, bounded manual plugin
 - Searchable bookmarks, Discord quick navigation, reader mode and adjustable text zoom.
 - Eight built-in CSS style presets for rounded, compact, bubble, minimal, high-contrast, developer and glass-like layouts.
 - Categorised emoji library covering faces, reactions, hearts, hands, animals, food, objects and symbols.
-- Custom accent colours and six interface font choices.
+- Custom accent colours and twelve interface font choices.
 - Developer Toolbox for JSON formatting, URL encoding/decoding, Base64 conversion, Discord Snowflake timestamps, and text statistics.
 - Rich Presence activity builder, local preview and JSON export.
 - Local profile badge/Nitro-style cosmetic preview.
