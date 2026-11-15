@@ -48,6 +48,13 @@ class PluginSourceUrlTest {
         }
     }
 
+    @Test fun rejectsLocalAndIpLiteralPluginHostsBeforeReview() {
+        listOf("https://localhost/plugin.js", "https://127.0.0.1/plugin.js",
+            "https://router.local/plugin.js").forEach { url ->
+            assertThrows(IllegalArgumentException::class.java) { PluginSourceUrl.toRawUrl(url) }
+        }
+    }
+
     @Test fun convertsExactGithubBlobHostToRawUrl() {
         assertEquals(
             "https://raw.githubusercontent.com/acme/plugin/main/src/plugin.js",
