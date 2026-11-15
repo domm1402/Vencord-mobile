@@ -1,6 +1,5 @@
 package com.vencordmobile
 
-import java.net.URL
 import java.util.Locale
 
 /** Canonicalize supported GitHub blob URLs without trusting substring host matches. */
@@ -8,7 +7,7 @@ internal object PluginSourceUrl {
     fun toRawUrl(input: String): String {
         require(input.length <= 2048) { "Plugin URL is too long" }
         require(input.startsWith("https://", ignoreCase = true)) { "Only HTTPS URLs are allowed" }
-        val parsed = URL(input)
+        val parsed = SecurePluginFetcher.parseHttpsUrl(input)
         require(parsed.protocol.equals("https", ignoreCase = true)) { "Only HTTPS URLs are allowed" }
         require(parsed.userInfo == null && parsed.ref == null) { "Plugin URLs cannot contain credentials or fragments" }
         val host = parsed.host.lowercase(Locale.ROOT).removeSuffix(".")
