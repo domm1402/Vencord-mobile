@@ -60,12 +60,7 @@ class MainActivity : Activity() {
                 val scheme = uri.scheme?.lowercase(java.util.Locale.ROOT)
                 if (scheme != "https" && scheme != "http") return true
                 val host = uri.host?.lowercase(java.util.Locale.ROOT) ?: return true
-                val discordHost = host == "discord.com" || host.endsWith(".discord.com") ||
-                    host == "discordapp.com" || host.endsWith(".discordapp.com") ||
-                    host == "discordapp.net" || host.endsWith(".discordapp.net") ||
-                    host == "discord.gg" || host == "discord.media" ||
-                    host == "discord.gift" || host == "discord.new"
-                if (scheme == "https" && discordHost) return false
+                if (scheme == "https" && DiscordUrlPolicy.isTrustedWebViewHost(host)) return false
                 // Keep third-party pages out of the signed-in Discord WebView.
                 return try {
                     startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri))
