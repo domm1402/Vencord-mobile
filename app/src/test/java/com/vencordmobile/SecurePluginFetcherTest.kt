@@ -28,6 +28,21 @@ class SecurePluginFetcherTest {
     }
 
     @Test
+    fun rejectsUrlsWithFragments() {
+        assertThrows(IllegalArgumentException::class.java) {
+            SecurePluginFetcher.parseHttpsUrl("https://example.com/plugin.js#section")
+        }
+    }
+
+    @Test
+    fun rejectsOverlongPluginUrls() {
+        val url = "https://example.com/" + "a".repeat(2048)
+        assertThrows(IllegalArgumentException::class.java) {
+            SecurePluginFetcher.parseHttpsUrl(url)
+        }
+    }
+
+    @Test
     fun resolvesRelativeHttpsRedirects() {
         val source = URL("https://example.com/releases/v1/plugin.js")
         val target = SecurePluginFetcher.resolveHttpsRedirect(source, "../v2/plugin.js")
