@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.14
+
+- Add five one-tap feature profiles for recommended cleanup, focus, accessibility, minimal UI and developer workspace.
+- Bump Android version code to 18 and version name to 2.14.
+
+## 2.13
+
+- Add 15 accessibility and visual tuning switches including readable line spacing, larger targets, visible keyboard focus, dim secondary content, reaction filtering, and bot badge suppression.
+- Bump Android version code to 17 and version name to 2.13.
+
+## 2.12
+
+- Add 12 focus and layout controls for banners, channel topics, unread badges, online member rows, blur, transparency, focus mode, high contrast, sticky composer and thread controls.
+- Bump Android version code to 16 and version name to 2.12.
+
+
 ## 2.11
 
 - Add 12 more focus/layout controls: promotional banners, channel topics, unread pills, online member rows, server labels, blur, transparency, focus mode, contrast, sticky composer, thread actions and animated backgrounds.
