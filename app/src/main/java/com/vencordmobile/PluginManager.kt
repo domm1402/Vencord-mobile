@@ -49,7 +49,17 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
             .setNeutralButton("Saved repositories") { _, _ ->
                 val names = Array(saved.length()) { i -> saved.optString(i) }
                 if (names.isEmpty()) Toast.makeText(activity,"No saved repositories",Toast.LENGTH_SHORT).show()
-                else AlertDialog.Builder(activity).setTitle("Saved repositories").setItems(names) { _, i -> fetchRepository(names[i]) }.setNegativeButton("Close",null).show()
+                else AlertDialog.Builder(activity).setTitle("Saved repositories • "+saved.length())
+                    .setItems(names.map { "Fetch  •  $it" }.toTypedArray()) { _, i ->
+                        AlertDialog.Builder(activity).setTitle(names[i]).setItems(arrayOf("Fetch plugin list","Remove repository")) { _, action ->
+                            if(action==0) fetchRepository(names[i]) else {
+                                val updated=JSONArray()
+                                for(j in 0 until saved.length()) if(j!=i) updated.put(saved.optString(j))
+                                prefs.edit().putString("plugin_repos",updated.toString()).apply()
+                                Toast.makeText(activity,"Repository removed",Toast.LENGTH_SHORT).show()
+                            }
+                        }.setNegativeButton("Cancel",null).show()
+                    }.setNegativeButton("Close",null).show()
             }
             .setNegativeButton("Close", null).show()
     }
