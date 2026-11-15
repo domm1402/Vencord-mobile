@@ -14,7 +14,15 @@ import kotlin.concurrent.thread
 class CustomPlugins(private val activity: Activity, private val onChanged: (JSONArray) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
     private fun load(): JSONArray = try { JSONArray(prefs.getString("custom_plugins", "[]")) } catch (_: Exception) { JSONArray() }
-    private fun save(a: JSONArray) { prefs.edit().putString("custom_plugins", a.toString()).apply(); onChanged(a) }
+    private fun save(a: JSONArray) {
+        val problem = PluginStoragePolicy.validate(a)
+        if (problem != null) {
+            Toast.makeText(activity, problem, Toast.LENGTH_LONG).show()
+            return
+        }
+        prefs.edit().putString("custom_plugins", a.toString()).apply()
+        onChanged(a)
+    }
     private fun postToUi(action: () -> Unit) {
         if (activity.isFinishing || activity.isDestroyed) return
         activity.runOnUiThread {
