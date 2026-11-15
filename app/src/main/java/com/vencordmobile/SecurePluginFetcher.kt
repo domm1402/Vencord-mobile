@@ -11,38 +11,32 @@ object SecurePluginFetcher {
     data class Result(val text: String, val finalUrl: String)
 
 
-    /** Parse a user-selected plugin URL without accepting insecure schemes or URL credentials. */
-    internal fun parseHttpsUrl(sourceUrl: String): URL {
-        val parsed = URL(sourceUrl)
-        require(parsed.protocol.equals("https", ignoreCase = true) && parsed.host.isNotBlank()) {
-            "Only valid HTTPS plugin sources are allowed"
+    /** Validate plugin source URLs before opening a network connection. */
+    internal fun validateHttpsUrl(url: URL) {
+        require(url.protocol.equals("https", ignoreCase = true)) {
+            "Only HTTPS plugin sources are allowed"
         }
-        require(parsed.userInfo == null) { "Plugin source URLs must not contain embedded credentials" }
-        return parsed
+        require(url.host.isNotBlank()) { "Plugin URL needs a valid host" }
+        require(url.userInfo == null) { "URLs containing embedded credentials are not allowed" }
+        require(url.ref == null) { "Plugin URLs must not contain fragments" }
+        require(url.port == -1 || url.port in 1..65535) { "Plugin URL has an invalid port" }
+    }
+
+    internal fun parseHttpsUrl(sourceUrl: String): URL {
+        require(sourceUrl.length <= 2048) { "Plugin URL is too long" }
+        return URL(sourceUrl).also(::validateHttpsUrl)
     }
 
     /** Resolve redirects manually so HTTPS-to-HTTP downgrades can never be followed. */
     internal fun resolveHttpsRedirect(current: URL, location: String): URL {
         require(location.isNotBlank()) { "Redirect did not include a destination" }
-        val next = URL(current, location)
-        return parseHttpsUrl(next.toString())
+        return URL(current, location).also(::validateHttpsUrl)
     }
 
     @Throws(Exception::class)
     fun fetch(sourceUrl: String, maxBytes: Int, userAgent: String): Result {
-        require(maxBytes > 0) { "Invalid download size limit" }
-        require(sourceUrl.length <= 2048) { "Plugin URL is too long" }
-        var current = URL(sourceUrl)
-        fun validateHttpsUrl(url: URL) {
-            require(url.protocol.equals("https", ignoreCase = true)) {
-                "Only HTTPS plugin sources are allowed"
-            }
-            require(!url.host.isNullOrBlank()) { "Plugin URL needs a valid host" }
-            require(url.userInfo == null) { "URLs containing embedded credentials are not allowed" }
-            require(url.ref == null) { "Plugin URLs must not contain fragments" }
-            require(url.port == -1 || url.port in 1..65535) { "Plugin URL has an invalid port" }
-        }
-        validateHttpsUrl(current)
+        require(maxBytes in 1..5_000_000) { "Download size limit must be between 1 byte and 5 MB" }
+        var current = parseHttpsUrl(sourceUrl)
         for (redirect in 0..5) {
             validateHttpsUrl(current)
             val connection = (current.openConnection() as HttpURLConnection).apply {
@@ -60,9 +54,7 @@ object SecurePluginFetcher {
                     val location = connection.getHeaderField("Location")
                         ?: throw IOException("Redirect did not include a destination")
                     if (redirect == 5) throw IOException("Too many redirects")
-                    val next = URL(current, location)
-                    validateHttpsUrl(next)
-                    current = next
+                    current = resolveHttpsRedirect(current, location)
                     continue
                 }
                 if (status !in 200..299) throw IOException("HTTP " + status)
