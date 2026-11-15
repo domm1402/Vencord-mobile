@@ -305,6 +305,7 @@ class MainActivity : Activity() {
                     tile("Emoji library","Browse and copy categorised emoji") { showEmojiLibrary() }
                     tile("Developer toolbox","JSON, Base64, URLs and Discord ID tools") { showDeveloperToolbox() }
                     tile("Code Lab","Offline syntax-highlighted editor, 12 language modes and drafts") { showCodeWorkspace() }
+                    tile("Media toolkit","Open media URLs, extract links and copy CDN templates") { showMediaTools() }
                     tile("Rich Presence","Configure and preview activity data") { showRPC() }
                     tile("Browser tools","Reader mode, zoom, find and reload") { showBrowserTools() }
                     tile("Navigation controls","Back, forward, home, scroll top/bottom and reload") { showNavigationControls() }
@@ -503,6 +504,7 @@ class MainActivity : Activity() {
         item("Snippet vault", "Save reusable replies, templates and formatted text") { showSnippetVault() }
         item("Developer toolbox", "Format JSON, encode text, decode Base64 and inspect Discord IDs") { showDeveloperToolbox() }
         item("Code Lab", "Offline syntax-highlighted editor, language modes and drafts") { showCodeWorkspace() }
+        item("Media toolkit", "Open HTTPS image/video links, extract URLs and copy CDN templates") { showMediaTools() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Bookmarks", "Save, search and reopen Discord pages") { showBookmarks() }
         item("Discord quick navigation", "Jump to DMs, friends, settings, Nitro and discovery") { showQuickNavigation() }
@@ -1330,6 +1332,23 @@ class MainActivity : Activity() {
         btn("Save"){editor.evaluateJavascript("getCode()"){v->try{prefs.edit().putString("code_lab_draft",org.json.JSONTokener(v).nextValue().toString()).apply();Toast.makeText(this,"Draft saved",Toast.LENGTH_SHORT).show()}catch(_:Exception){}}}
         btn("Load"){editor.evaluateJavascript("setCode("+org.json.JSONObject.quote(prefs.getString("code_lab_draft","// saved draft"))+")",null)}
         panel.addView(buttons);dialog.setContentView(panel);dialog.show();dialog.window?.setLayout(-1,(resources.displayMetrics.heightPixels*0.9).toInt())
+    }
+
+    private fun showMediaTools() {
+        val options=arrayOf("Open image URL","Open video URL","Extract links from text","Copy Discord CDN attachment template")
+        AlertDialog.Builder(this).setTitle("Media toolkit").setItems(options){_,which->
+            val input=EditText(this).apply{hint=if(which==2)"Paste text containing URLs" else "https://…";minLines=if(which==2)4 else 2;gravity=Gravity.TOP}
+            AlertDialog.Builder(this).setTitle(options[which]).setView(input).setPositiveButton("Run"){_,_->
+                val raw=input.text.toString()
+                val result=when(which){
+                    0,1->raw.trim()
+                    2->Regex("https?://[^\\s<>\\\"]+").findAll(raw).map{it.value.trimEnd('.',',',')',']')}.distinct().joinToString("\\n")
+                    else->"https://cdn.discordapp.com/attachments/CHANNEL_ID/ATTACHMENT_ID/FILENAME"
+                }
+                if(which<2){try{val u=android.net.Uri.parse(result);require(u.scheme=="https");startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,u))}catch(_:Exception){Toast.makeText(this,"Use a valid HTTPS media URL",Toast.LENGTH_SHORT).show()}}
+                else{val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager;cm.setPrimaryClip(android.content.ClipData.newPlainText("Media toolkit",result));Toast.makeText(this,"Copied "+(if(which==2)Regex("https?://").findAll(result).count() else 1)+" item(s)",Toast.LENGTH_SHORT).show()}
+            }.setNegativeButton("Cancel",null).show()
+        }.show()
     }
 
     private fun showDeveloperToolbox() {
