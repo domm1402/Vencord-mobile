@@ -21,8 +21,7 @@ class PluginStoragePolicyTest {
         assertEquals("A plugin exceeds the 500 KB limit",
             PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code","x".repeat(500_001)))))
         val plugins = JSONArray()
-            .put(JSONObject().put("code","x".repeat(1_000_001)))
-            .put(JSONObject().put("code","y".repeat(1_000_001)))
+        repeat(5) { plugins.put(JSONObject().put("code", "x".repeat(500_000))) }
         assertEquals("Combined plugin code exceeds 2 MB", PluginStoragePolicy.validate(plugins))
     }
 
