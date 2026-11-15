@@ -75,6 +75,29 @@ class MainActivity : Activity() {
                     true
                 }
             }
+            override fun onReceivedError(
+                view: WebView?,
+                request: android.webkit.WebResourceRequest?,
+                error: android.webkit.WebResourceError?
+            ) {
+                super.onReceivedError(view, request, error)
+                if (request?.isForMainFrame == true) {
+                    swipe.isRefreshing = false
+                    Toast.makeText(this@MainActivity, "Discord couldn't load. Check your connection and pull down to retry.", Toast.LENGTH_LONG).show()
+                }
+            }
+            override fun onReceivedHttpError(
+                view: WebView?,
+                request: android.webkit.WebResourceRequest?,
+                errorResponse: android.webkit.WebResourceResponse?
+            ) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                val status = errorResponse?.statusCode ?: return
+                if (request?.isForMainFrame == true && status >= 500) {
+                    swipe.isRefreshing = false
+                    Toast.makeText(this@MainActivity, "Discord returned a server error ($status). Try again shortly.", Toast.LENGTH_LONG).show()
+                }
+            }
             override fun onPageFinished(view: WebView?, url: String?) {
                 swipe.isRefreshing = false
                 applyCustomizations()
