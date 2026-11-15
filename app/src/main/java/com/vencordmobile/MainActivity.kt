@@ -27,6 +27,7 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private lateinit var root: FrameLayout
     private lateinit var swipe: SwipeRefreshLayout
+    private lateinit var assetLoader: WebViewAssetLoader
     private var mobileUserAgent = ""
     private val prefs by lazy { getSharedPreferences("vcm_prefs", MODE_PRIVATE) }
     private val plugins = listOf("Message Logger (local UI)", "Translator button", "Typing indicator tools", "Custom profile decorations", "Better message spacing", "Quick reactions", "Hide nitro upsells", "Developer tools")
@@ -35,6 +36,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         root = FrameLayout(this)
+        assetLoader = WebViewAssetLoader.Builder().build()
         web = WebView(this)
         mobileUserAgent = web.settings.userAgentString.replace("; wv", "")
         web.settings.javaScriptEnabled = true
@@ -55,6 +57,9 @@ class MainActivity : Activity() {
         web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
         installVencord()
         web.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView?, request: android.webkit.WebResourceRequest?): android.webkit.WebResourceResponse? {
+                return request?.url?.let { assetLoader.shouldInterceptRequest(it) } ?: super.shouldInterceptRequest(view, request)
+            }
             override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
                 val uri = request?.url ?: return false
                 val scheme = uri.scheme?.lowercase(java.util.Locale.ROOT)
@@ -571,7 +576,7 @@ class MainActivity : Activity() {
             setText(prefs.getString("custom_accent", ""))
             inputType = InputType.TYPE_CLASS_TEXT
         }
-        val fonts = arrayOf("System default", "Arial", "Georgia", "Trebuchet MS", "Verdana", "monospace")
+        val fonts = arrayOf("System default", "Arial", "Georgia", "Trebuchet MS", "Verdana", "monospace", "Noto Sans CJK (offline)")
         val current = prefs.getInt("font_choice", 0).coerceIn(0, fonts.lastIndex)
         val spinner = Spinner(this).apply {
             adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, fonts)
@@ -1710,8 +1715,9 @@ class MainActivity : Activity() {
         val rules = StringBuilder()
         rules.append(":root{color-scheme:" + (if(theme == 6) "light" else "dark") + ";}:root,body,#app-mount,.theme-dark,.theme-light{--background-primary:"+p[0]+"!important;--background-secondary:"+p[1]+"!important;--background-secondary-alt:"+p[1]+"!important;--background-tertiary:"+p[2]+"!important;--background-floating:"+p[1]+"!important;--channeltextarea-background:"+p[2]+"!important;--modal-background:"+p[1]+"!important;--header-primary:"+p[4]+"!important;--text-normal:"+p[4]+"!important;--header-secondary:"+p[5]+"!important;--text-muted:"+p[5]+"!important;--interactive-normal:"+p[5]+"!important;--brand-experiment:"+p[3]+"!important;--brand-experiment-560:"+p[3]+"!important;--button-secondary-background:"+p[2]+"!important;--scrollbar-thin-thumb:"+p[5]+"!important;}")
         rules.append("html,body,#app-mount{background:"+p[0]+"!important;color:"+p[4]+"!important;}")
-        val fontFamilies = arrayOf("system-ui, sans-serif", "Arial, sans-serif", "Georgia, serif", "'Trebuchet MS', sans-serif", "Verdana, sans-serif", "monospace", "'Courier New', monospace", "'Times New Roman', serif", "'Comic Sans MS', cursive", "Tahoma, sans-serif", "'Lucida Console', monospace", "'Palatino Linotype', serif")
+        val fontFamilies = arrayOf("system-ui, sans-serif", "Arial, sans-serif", "Georgia, serif", "'Trebuchet MS', sans-serif", "Verdana, sans-serif", "monospace", "'Courier New', monospace", "'Times New Roman', serif", "'Comic Sans MS', cursive", "Tahoma, sans-serif", "'Lucida Console', monospace", "'Palatino Linotype', serif", "'NexoraNotoCJK', sans-serif")
         val font = fontFamilies[prefs.getInt("font_choice", 0).coerceIn(0, fontFamilies.lastIndex)]
+        if(prefs.getInt("font_choice",0)==12) rules.append("@font-face{font-family:NexoraNotoCJK;src:url(https://appassets.androidplatform.net/assets/fonts/NotoSansCJK-Regular.ttc) format('truetype');font-weight:400;}")
         rules.append("body,#app-mount{font-family:"+font+"!important;}")
         if(prefs.getBoolean("compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("noavatars",false)) rules.append("[class*=messageListItem] [class*=avatar]{display:none!important}")
