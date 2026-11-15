@@ -1024,7 +1024,8 @@ class MainActivity : Activity() {
                 "high_contrast" to "High contrast text",
                 "sticky_composer" to "Keep message composer visible",
                 "hide_thread_buttons" to "Hide thread action buttons",
-                "hide_animated_backgrounds" to "Disable animated backgrounds"\n            )
+                "hide_animated_backgrounds" to "Disable animated backgrounds"
+            )
         )
         val all = groups.values.flatten()
         val labels = all.map { it.second }.toTypedArray()
@@ -1564,7 +1565,8 @@ class MainActivity : Activity() {
             arrayOf("#20242b","#292e38","#171a20","#9ca3af","#f3f4f6","#aab2c0"),
             arrayOf("#271b24","#35232f","#1b1119","#f472b6","#fff1f7","#d6a8c0"),
             arrayOf("#2b1719","#3a2023","#1c1012","#fb7185","#fff1f2","#e6a8ad"),
-            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0"),\n            arrayOf("#242933","#303846","#1b2028","#88c0d0","#eceff4","#b8c2d0"),\n            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),\n            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),\n            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),\n            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),\n            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),\n            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),\n            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
+            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0"),
+            arrayOf("#242933","#303846","#1b2028","#88c0d0","#eceff4","#b8c2d0"),\n            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),\n            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),\n            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),\n            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),\n            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),\n            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),\n            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
         )
         val p = palettes[theme].clone()
         prefs.getString("custom_accent", "")?.takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.let { p[3] = it }
