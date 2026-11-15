@@ -1575,6 +1575,16 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        if (::web.isInitialized) web.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::web.isInitialized) web.onResume()
+    }
+
     override fun onDestroy() {
         pendingFileChooser?.onReceiveValue(null)
         pendingFileChooser = null
