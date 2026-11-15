@@ -35,6 +35,18 @@ class BackupPreferenceValidatorTest {
         assertNull(BackupPreferenceValidator.parse("page_text_zoom", "int", "201"))
     }
 
+    @Test fun acceptsExactTextLimitAndRejectsOneOver() {
+        val exact = "x".repeat(100000)
+        assertEquals(exact, BackupPreferenceValidator.parse("css", "string", exact))
+        assertNull(BackupPreferenceValidator.parse("css", "string", exact + "x"))
+    }
+
+    @Test fun rejectsUnsupportedRpcPreferenceTypes() {
+        assertNull(BackupPreferenceValidator.parse("rpc_game", "int", "1"))
+        assertNull(BackupPreferenceValidator.parse("rpc_game", "boolean", "true"))
+        assertEquals("game", BackupPreferenceValidator.parse("rpc_game", "string", "game"))
+    }
+
     @Test fun boundsRestoredText() {
         assertNull(BackupPreferenceValidator.parse("css", "string", "x".repeat(100001)))
         assertEquals("safe", BackupPreferenceValidator.parse("css", "string", "safe"))
