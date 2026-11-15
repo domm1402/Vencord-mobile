@@ -65,9 +65,10 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
         AlertDialog.Builder(activity).setTitle("Install $name?").setMessage("${plugin.optString("description", "No description")}\n\nThis code will execute in your signed-in Discord page and may access account data. Install only if you trust its author.").setPositiveButton("Install") { _, _ ->
             thread {
                 try {
-                    val code = SecurePluginFetcher.fetch(url,500000,"NEXORA-PluginManager").text
+                    val downloaded = SecurePluginFetcher.fetch(url,500000,"NEXORA-PluginManager")
+                    val code = downloaded.text
                     require(code.isNotBlank()) { "Plugin file is empty" }
-                    val finalUrl = SecurePluginFetcher.fetch(url,500000,"NEXORA-PluginManager").finalUrl
+                    val finalUrl = downloaded.finalUrl
                     activity.runOnUiThread {
                         val all = try { JSONArray(prefs.getString("custom_plugins", "[]")) } catch (_: Exception) { JSONArray() }
                         val duplicate = (0 until all.length()).any { index ->
