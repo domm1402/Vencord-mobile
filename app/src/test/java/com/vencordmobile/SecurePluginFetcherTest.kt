@@ -154,6 +154,28 @@ class SecurePluginFetcherTest {
     }
 
     @Test
+    fun rejectsProtocolRelativeRedirectsToLocalOrNumericHosts() {
+        val source = URL("https://plugins.example.org/plugin.js")
+        listOf("//127.0.0.1/payload.js", "//router.local/payload.js", "//2130706433/payload.js")
+            .forEach { target ->
+                assertThrows(IllegalArgumentException::class.java) {
+                    SecurePluginFetcher.resolveHttpsRedirect(source, target)
+                }
+            }
+    }
+
+    @Test
+    fun rejectsRedirectDestinationsWithCredentialsOrFragments() {
+        val source = URL("https://plugins.example.org/plugin.js")
+        listOf("https://user:pass@cdn.example/plugin.js", "https://cdn.example/plugin.js#frag")
+            .forEach { target ->
+                assertThrows(IllegalArgumentException::class.java) {
+                    SecurePluginFetcher.resolveHttpsRedirect(source, target)
+                }
+            }
+    }
+
+    @Test
     fun rejectsEmptyRedirectTargets() {
         assertThrows(IllegalArgumentException::class.java) {
             SecurePluginFetcher.resolveHttpsRedirect(URL("https://example.com/plugin.js"), "")
