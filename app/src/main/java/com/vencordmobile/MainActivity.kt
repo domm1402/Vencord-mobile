@@ -85,10 +85,19 @@ class MainActivity : Activity() {
         }
         web.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             try {
+                val downloadUri = android.net.Uri.parse(url)
+                require(downloadUri.scheme.equals("https", ignoreCase = true)) { "Only secure HTTPS downloads are allowed" }
                 val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
-                val request = DownloadManager.Request(android.net.Uri.parse(url)).apply {
+                val request = DownloadManager.Request(downloadUri).apply {
                     setMimeType(mimeType)
-                    addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url) ?: "")
+                    // Never forward Discord session cookies to third-party download hosts.
+                    val host = downloadUri.host?.lowercase(java.util.Locale.ROOT).orEmpty()
+                    if (host == "discord.com" || host.endsWith(".discord.com") ||
+                        host == "discordapp.com" || host.endsWith(".discordapp.com")) {
+                        CookieManager.getInstance().getCookie(url)?.takeIf { it.isNotBlank() }?.let {
+                            addRequestHeader("Cookie", it)
+                        }
+                    }
                     addRequestHeader("User-Agent", userAgent)
                     setTitle(filename)
                     setDescription("Downloading from Discord")
@@ -1411,11 +1420,14 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == fileChooserRequestCode) {
-            val result = if (resultCode == RESULT_OK) {
-                val uris = data?.clipData?.let { clip ->
-                    Array(clip.itemCount) { index -> clip.getItemAt(index).uri }
-                } ?: data?.data?.let { arrayOf(it) }
-                uris
+            val result = if (resultCode == RESULT_OK && data != null) {
+                try {
+                    WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+                } catch (_: Exception) {
+                    data.clipData?.let { clip ->
+                        Array(clip.itemCount) { index -> clip.getItemAt(index).uri }
+                    } ?: data.data?.let { arrayOf(it) }
+                }
             } else null
             pendingFileChooser?.onReceiveValue(result)
             pendingFileChooser = null
@@ -1434,6 +1446,8 @@ class MainActivity : Activity() {
 
     @Deprecated("Deprecated in Android")
     override fun onBackPressed() {
-        if (web.isFocused && web.canGoBack()) web.goBack() else super.onBackPressed()
+        // WebView often loses focus after tapping Discord controls, so focus is not a
+        // reliable test for whether browser history can handle Back.
+        if (::web.isInitialized && web.canGoBack()) web.goBack() else super.onBackPressed()
     }
 }
