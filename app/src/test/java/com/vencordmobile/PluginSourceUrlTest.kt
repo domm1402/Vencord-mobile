@@ -26,6 +26,14 @@ class PluginSourceUrlTest {
         }
     }
 
+    @Test fun rejectsEmptyOwnerRepositoryOrRef() {
+        listOf("https://github.com//plugin/blob/main/a.js",
+            "https://github.com/acme//blob/main/a.js",
+            "https://github.com/acme/plugin/blob//a.js").forEach { url ->
+            assertThrows(IllegalArgumentException::class.java) { PluginSourceUrl.toRawUrl(url) }
+        }
+    }
+
     @Test fun convertsExactGithubBlobHostToRawUrl() {
         assertEquals(
             "https://raw.githubusercontent.com/acme/plugin/main/src/plugin.js",
