@@ -6,11 +6,11 @@ A redesigned Android Discord client shell with a full-screen NEXORA control deck
 
 ## NEXORA 2.0
 
-NEXORA 2.1 adds native Android file selection for Discord uploads and attachment flows, safer download handling, secure extension fetching and safer settings restore. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
+NEXORA 2.1 adds native Android file selection for Discord uploads and attachment flows, safer download handling, secure extension fetching, safer settings restore and WebView hardening. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
 
 ## Features
 
-- Discord web app in an Android WebView, with swipe refresh, Android file downloads and Android file-picker support for uploads/attachments. Third-party links open outside the signed-in Discord WebView.
+- Discord web app in an Android WebView, with swipe refresh, Android file downloads, a native download history and Android file-picker support for uploads/attachments. Third-party links open outside the signed-in Discord WebView.
 - Modern dark Control Centre, mobile/desktop page mode, navigation and find-on-page.
 - Eleven built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 21 local chat/layout toggles.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
@@ -42,7 +42,7 @@ Host a public HTTPS JSON file with this structure:
 }
 ```
 
-Plugin JavaScript executes in the signed-in Discord page and can access page data. Only install code you trust. This loader is for this app's own JavaScript format, not Vencord desktop, Revenge or Aliucord packages.
+Plugin JavaScript executes in the signed-in Discord page and can access page data. The app limits download sizes, blocks insecure redirect downgrades, shows the final source and requires a final install confirmation. Only install code you trust. This loader is for this app's own JavaScript format, not Vencord desktop, Revenge or Aliucord packages.
 
 ## Important limitations
 
