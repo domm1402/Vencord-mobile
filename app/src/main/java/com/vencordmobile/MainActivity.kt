@@ -1415,9 +1415,13 @@ class MainActivity : Activity() {
             }
             .setNeutralButton("Restore") { _, _ ->
                 try {
-                    val root=org.json.JSONObject(editor.text.toString())
+                    val backupText = editor.text.toString()
+                    require(backupText.length <= 1000000) { "Backup exceeds the 1 MB restore limit" }
+                    val root=org.json.JSONObject(backupText)
                     require(root.optString("format") in setOf("nexora-settings", "vencord-mobile-settings")) { "This is not a supported NEXORA backup" }
+                    require(root.optInt("version", 1) in 1..2) { "Unsupported backup version" }
                     val values=root.getJSONObject("preferences")
+                    require(values.length() <= 500) { "Backup contains too many settings" }
                     val out=prefs.edit()
                     var skipped = 0
                     val keys=values.keys()
