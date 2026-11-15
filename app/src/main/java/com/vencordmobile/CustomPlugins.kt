@@ -105,8 +105,21 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
         val box=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL; setPadding(24,8,24,0); addView(name); addView(code, LinearLayout.LayoutParams(-1, activity.resources.displayMetrics.heightPixels/3)) }
         val builder=AlertDialog.Builder(activity).setTitle(if(index<0) "New plugin" else "Edit plugin").setView(box)
             .setPositiveButton("Save") { _,_ ->
-                val p=JSONObject().put("name",name.text.toString().ifBlank{"My plugin"}).put("code",code.text.toString()).put("enabled",true)
-                if(index<0) a.put(p) else a.put(index,p); save(a)
+                val pluginName = name.text.toString().trim().ifBlank { "My plugin" }.take(80)
+                val pluginCode = code.text.toString()
+                val codeSize = pluginCode.toByteArray(Charsets.UTF_8).size
+                if (pluginCode.isBlank()) {
+                    Toast.makeText(activity, "Plugin code cannot be empty", Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                if (codeSize > 500000) {
+                    Toast.makeText(activity, "Plugin code exceeds the 500 KB limit", Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                val p=JSONObject().put("name",pluginName).put("code",pluginCode).put("enabled",true)
+                old.optString("source","").takeIf { it.isNotBlank() }?.let { p.put("source",it) }
+                if(index<0) a.put(p) else a.put(index,p)
+                save(a)
                 Toast.makeText(activity,"Saved. Reload Discord to run it.",Toast.LENGTH_SHORT).show()
             }.setNegativeButton("Cancel",null)
         if(index>=0) builder.setNeutralButton("Delete") { _,_ -> a.remove(index); save(a) }
