@@ -6,8 +6,6 @@ import android.text.InputType
 import android.widget.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import kotlin.concurrent.thread
 
 class PluginManager(private val activity: Activity, private val openFeature: (Int) -> Unit) {
@@ -36,7 +34,8 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
                 val url = input.text.toString().trim()
                 if (!url.startsWith("https://")) { Toast.makeText(activity,"HTTPS repository URL required",Toast.LENGTH_SHORT).show() }
                 else {
-                    if (!saved.toString().contains(url)) saved.put(url)
+                    val alreadySaved = (0 until saved.length()).any { saved.optString(it) == url }
+                    if (!alreadySaved) saved.put(url)
                     prefs.edit().putString("plugin_repos",saved.toString()).apply()
                     fetchRepository(url)
                 }
