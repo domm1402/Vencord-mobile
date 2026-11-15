@@ -209,7 +209,8 @@ class MainActivity : Activity() {
                   };
                 })();
             """.trimIndent()
-            val source = bridge + "\n" + bundle
+            val source = bridge + "
+" + bundle
             if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
                 WebViewCompat.addDocumentStartJavaScript(web, source, setOf("https://discord.com", "https://*.discord.com"))
             } else {
@@ -367,12 +368,18 @@ class MainActivity : Activity() {
             WebView.getCurrentWebViewPackage()?.versionName ?: "Unknown"
         } else "Android System WebView"
         val info = "Page: " + (web.title ?: "Untitled") +
-            "\nURL: " + (web.url ?: "Not loaded") +
-            "\nWebView engine: " + engine +
-            "\nDisplay mode: " + (if (prefs.getBoolean("desktop_mode", false)) "Desktop" else "Mobile") +
-            "\nText zoom: " + web.settings.textZoom + "%" +
-            "\nJavaScript: enabled" +
-            "\nSafe Browsing: enabled where supported"
+            "
+URL: " + (web.url ?: "Not loaded") +
+            "
+WebView engine: " + engine +
+            "
+Display mode: " + (if (prefs.getBoolean("desktop_mode", false)) "Desktop" else "Mobile") +
+            "
+Text zoom: " + web.settings.textZoom + "%" +
+            "
+JavaScript: enabled" +
+            "
+Safe Browsing: enabled where supported"
         AlertDialog.Builder(this).setTitle("Page information").setMessage(info)
             .setPositiveButton("Copy details") { _, _ ->
                 val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
@@ -403,7 +410,8 @@ class MainActivity : Activity() {
                     else -> "Queued"
                 }
                 ids.add(id)
-                labels.add(title + "\n" + statusText)
+                labels.add(title + "
+" + statusText)
             }
         }
         if (ids.isEmpty()) {
@@ -646,7 +654,8 @@ class MainActivity : Activity() {
     }
 
     private fun editCss() {
-        val input = EditText(this).apply { minLines = 8; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE; setText(prefs.getString("css", "")); hint = "/* Your CSS */\nbody { }" }
+        val input = EditText(this).apply { minLines = 8; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE; setText(prefs.getString("css", "")); hint = "/* Your CSS */
+body { }" }
         AlertDialog.Builder(this).setTitle("Custom CSS (local)")
             .setView(input).setPositiveButton("Save") { _, _ -> prefs.edit().putString("css", input.text.toString()).apply(); applyCustomizations() }
             .setNeutralButton("Clear") { _, _ -> prefs.edit().remove("css").apply(); applyCustomizations() }.setNegativeButton("Cancel", null).show()
@@ -939,7 +948,8 @@ class MainActivity : Activity() {
         card.addView(TextView(this).apply {
             val details = prefs.getString("rpc_details", "").orEmpty()
             val state = prefs.getString("rpc_state", "").orEmpty()
-            text = listOf(details, state).filter { it.isNotBlank() }.joinToString("\n")
+            text = listOf(details, state).filter { it.isNotBlank() }.joinToString("
+")
             textSize = 13f
             setTextColor(Color.WHITE)
         })
@@ -949,7 +959,8 @@ class MainActivity : Activity() {
             "Party: " + prefs.getString("rpc_party_size", "1") + " / " + prefs.getString("rpc_party_max", "5")
         ).filterNot { it.endsWith(": ") }
         card.addView(TextView(this).apply {
-            text = metadata.joinToString("\n")
+            text = metadata.joinToString("
+")
             textSize = 11f
             setTextColor(Color.rgb(230, 232, 255))
             setPadding(0, dp(12), 0, 0)
@@ -1024,7 +1035,8 @@ class MainActivity : Activity() {
                 "high_contrast" to "High contrast text",
                 "sticky_composer" to "Keep message composer visible",
                 "hide_thread_buttons" to "Hide thread action buttons",
-                "hide_animated_backgrounds" to "Disable animated backgrounds"\n            )
+                "hide_animated_backgrounds" to "Disable animated backgrounds"
+            )
         )
         val all = groups.values.flatten()
         val labels = all.map { it.second }.toTypedArray()
@@ -1139,7 +1151,9 @@ class MainActivity : Activity() {
                             "Strikethrough" -> wrap("~~")
                             "Spoiler" -> wrap("||")
                             "Inline code" -> wrap("`")
-                            "Code block" -> wrap("```\n", "\n```")
+                            "Code block" -> wrap("```
+", "
+```")
                             "Quote" -> wrap("> ", "")
                             "Bullet list" -> wrap("- ", "")
                             "Numbered list" -> wrap("1. ", "")
@@ -1203,9 +1217,13 @@ class MainActivity : Activity() {
                             5 -> {
                                 val id = source.trim().toLong()
                                 val millis = (id shr 22) + 1420070400000L
-                                "Created: " + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(millis)) + "\nTimestamp: " + millis
+                                "Created: " + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(millis)) + "
+Timestamp: " + millis
                             }
-                            else -> "Characters: " + source.length + "\nWords: " + source.trim().split(Regex("\\s+")).count { it.isNotEmpty() } + "\nLines: " + if(source.isEmpty()) 0 else source.count { it == '\n' } + 1
+                            else -> "Characters: " + source.length + "
+Words: " + source.trim().split(Regex("\\s+")).count { it.isNotEmpty() } + "
+Lines: " + if(source.isEmpty()) 0 else source.count { it == '
+' } + 1
                         }
                     } catch(e: Exception) { "Error: " + (e.message ?: "Invalid input") }
                     val output = EditText(this).apply { setText(result); minLines = 4; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
@@ -1288,7 +1306,8 @@ class MainActivity : Activity() {
                 val item = all.optJSONObject(i) ?: return@mapNotNull null
                 Triple(i, item.optString("title", "Untitled"), item.optString("url"))
             }.filter { it.second.contains(filter, true) || it.third.contains(filter, true) }
-            val labels = matches.map { it.second + "\n" + it.third }.toTypedArray()
+            val labels = matches.map { it.second + "
+" + it.third }.toTypedArray()
             AlertDialog.Builder(this).setTitle("Bookmarks (" + matches.size + ")")
                 .setItems(labels) { _, index ->
                     val selected = matches[index]
@@ -1399,7 +1418,10 @@ class MainActivity : Activity() {
             .setPositiveButton("Copy formatted text") { _, _ ->
                 val value = input.text.toString()
                 if(value.isBlank()) { Toast.makeText(this,"Enter some text first",Toast.LENGTH_SHORT).show(); return@setPositiveButton }
-                val formatted = when(picker.selectedItemPosition) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__${value}__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```\n$value\n```"; else -> value.lines().joinToString("\n") { "> $it" } }
+                val formatted = when(picker.selectedItemPosition) { 0 -> "**$value**"; 1 -> "*$value*"; 2 -> "__${value}__"; 3 -> "~~$value~~"; 4 -> "||$value||"; 5 -> "`$value`"; 6 -> "```
+$value
+```"; else -> value.lines().joinToString("
+") { "> $it" } }
                 val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("Formatted Discord message",formatted))
                 Toast.makeText(this,"Formatted text copied",Toast.LENGTH_SHORT).show()
@@ -1425,7 +1447,19 @@ class MainActivity : Activity() {
 
     private fun showMarkdownReference() {
         AlertDialog.Builder(this).setTitle("Discord Markdown")
-            .setMessage("**bold**\n*italic*\n__underline__\n~~strikethrough~~\n||spoiler||\n`inline code`\n```\ncode block\n```\n> quote\n-# subtext\n[link text](https://example.com)\n<t:UNIX:F> timestamp")
+            .setMessage("**bold**
+*italic*
+__underline__
+~~strikethrough~~
+||spoiler||
+`inline code`
+```
+code block
+```
+> quote
+-# subtext
+[link text](https://example.com)
+<t:UNIX:F> timestamp")
             .setPositiveButton("Close",null).show()
     }
 
@@ -1564,7 +1598,15 @@ class MainActivity : Activity() {
             arrayOf("#20242b","#292e38","#171a20","#9ca3af","#f3f4f6","#aab2c0"),
             arrayOf("#271b24","#35232f","#1b1119","#f472b6","#fff1f7","#d6a8c0"),
             arrayOf("#2b1719","#3a2023","#1c1012","#fb7185","#fff1f2","#e6a8ad"),
-            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0"),\n            arrayOf("#242933","#303846","#1b2028","#88c0d0","#eceff4","#b8c2d0"),\n            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),\n            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),\n            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),\n            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),\n            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),\n            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),\n            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
+            arrayOf("#142720","#1b382d","#0c1913","#6ee7b7","#eafff4","#a6d8c0"),
+            arrayOf("#242933","#303846","#1b2028","#88c0d0","#eceff4","#b8c2d0"),
+            arrayOf("#282a36","#343746","#191a21","#bd93f9","#f8f8f2","#c5c8d2"),
+            arrayOf("#302d41","#3b3653","#211e2e","#cba6f7","#f5eefa","#c6b9d8"),
+            arrayOf("#17121f","#25172f","#100c17","#ff4fd8","#fff0ff","#d7a4d0"),
+            arrayOf("#17232d","#203342","#0d1720","#67e8f9","#ecfeff","#a9d4df"),
+            arrayOf("#002b36","#073642","#001f27","#2aa198","#eee8d5","#93a1a1"),
+            arrayOf("#101b10","#192b19","#091109","#39ff14","#eaffea","#9bd99b"),
+            arrayOf("#30202a","#402b38","#1e121b","#f9a8d4","#fff1f8","#d7a6c1")
         )
         val p = palettes[theme].clone()
         prefs.getString("custom_accent", "")?.takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.let { p[3] = it }
@@ -1643,7 +1685,8 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("feature_hide_typing",false)) rules.append("[class*=typing],[class*=typingIndicator]{display:none!important}")
         if(prefs.getBoolean("feature_hide_profile_banners",false)) rules.append("[class*=profileBanner]{display:none!important}")
         rules.append(prefs.getString("css", "") ?: "")
-        val escaped = rules.toString().replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ")
+        val escaped = rules.toString().replace("\\", "\\\\").replace("'", "\\'").replace("
+", " ")
         web.evaluateJavascript("(function(){var s=document.getElementById('vcm-style');if(!s){s=document.createElement('style');s.id='vcm-style';document.head.appendChild(s);}s.textContent='"+escaped+"';})();", null)
     }
     private fun findOnPage() {
