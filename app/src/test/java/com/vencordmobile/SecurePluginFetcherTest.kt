@@ -22,6 +22,15 @@ class SecurePluginFetcherTest {
     }
 
     @Test
+    fun rejectsInvalidDownloadByteLimitsBeforeNetwork() {
+        listOf(0, -1, 5_000_001).forEach { limit ->
+            assertThrows(IllegalArgumentException::class.java) {
+                SecurePluginFetcher.fetch("https://example.com/plugin.js", limit, "test")
+            }
+        }
+    }
+
+    @Test
     fun acceptsHttpsPluginSources() {
         val parsed = SecurePluginFetcher.parseHttpsUrl("https://example.com/plugins/example.js")
         assertEquals("https", parsed.protocol)
