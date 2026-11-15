@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.18
+
+- Wire 12 invite, event, call, popout, tooltip and link-button filters into the CSS engine.
+- Bump Android version code to 22 and version name to 2.18.
+
+
 ## 2.17
 
 - Normalize all remaining palette array separators after CI caught escaped newline literals.
