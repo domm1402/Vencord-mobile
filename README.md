@@ -1,10 +1,10 @@
 # NEXORA
 
-**Current version: 2.3**
+**Current version: 2.4**
 
 A redesigned Android Discord client shell with a full-screen NEXORA control deck with local interface customisation. It is not affiliated with Discord or the Vencord project.
 
-## NEXORA 2.3
+## NEXORA 2.4
 
 NEXORA 2.2 adds duplicate-safe plugin execution per page, bounded manual plugin editing and main-page network error feedback. It also includes native Android file selection for Discord uploads and attachment flows, safer download handling, secure extension fetching, safer settings restore and WebView hardening. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
 
