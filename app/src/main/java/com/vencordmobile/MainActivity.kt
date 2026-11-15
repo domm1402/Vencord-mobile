@@ -733,7 +733,12 @@ class MainActivity : Activity() {
             Toast.makeText(this,"Fetching CSS…",Toast.LENGTH_SHORT).show()
             kotlin.concurrent.thread {
                 try {
-                    val raw=PluginSourceUrl.toRawUrl(url)
+                    val parsed=java.net.URL(url)
+                    val raw=if(parsed.host.equals("github.com",true) && parsed.path.contains("/blob/")) {
+                        val parts=parsed.path.removePrefix("/").split("/")
+                        require(parts.size>=5 && parts[2]=="blob" && parts.last().endsWith(".css",true)){"GitHub theme links must point to a .css file"}
+                        "https://raw.githubusercontent.com/"+parts[0]+"/"+parts[1]+"/"+parts[3]+"/"+parts.drop(4).joinToString("/")
+                    } else url
                     val result=SecurePluginFetcher.fetch(raw,1_000_000,"NEXORA-CSS-Importer")
                     val css=result.text
                     require(css.isNotBlank()){"CSS file is empty"}
