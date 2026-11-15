@@ -47,10 +47,7 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
         Toast.makeText(activity,"Fetching plugin list…",Toast.LENGTH_SHORT).show()
         thread {
             try {
-                val connection = (URL(manifestUrl).openConnection() as HttpURLConnection).apply { connectTimeout=12000; readTimeout=15000; setRequestProperty("User-Agent","VencordMobile") }
-                val body = connection.inputStream.bufferedReader().use { it.readText() }
-                connection.disconnect()
-                require(body.length <= 1000000) { "Manifest is larger than 1 MB" }
+                val body = SecurePluginFetcher.fetch(manifestUrl,1000000,"NEXORA-PluginManager").text
                 val entries = JSONObject(body).optJSONArray("plugins") ?: throw Exception("Manifest needs a plugins array")
                 activity.runOnUiThread {
                     if (entries.length() == 0) { Toast.makeText(activity,"No plugins in this repository",Toast.LENGTH_SHORT).show(); return@runOnUiThread }
@@ -68,14 +65,20 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
         AlertDialog.Builder(activity).setTitle("Install $name?").setMessage("${plugin.optString("description", "No description")}\n\nThis code will execute in your signed-in Discord page and may access account data. Install only if you trust its author.").setPositiveButton("Install") { _, _ ->
             thread {
                 try {
-                    val connection = (URL(url).openConnection() as HttpURLConnection).apply { connectTimeout=12000; readTimeout=15000; setRequestProperty("User-Agent","VencordMobile") }
-                    val code = connection.inputStream.bufferedReader().use { it.readText() }; connection.disconnect()
-                    require(code.isNotBlank() && code.length <= 500000) { "Plugin is empty or exceeds 500 KB" }
+                    val code = SecurePluginFetcher.fetch(url,500000,"NEXORA-PluginManager").text
+                    require(code.isNotBlank()) { "Plugin file is empty" }
                     activity.runOnUiThread {
                         val all = try { JSONArray(prefs.getString("custom_plugins", "[]")) } catch (_: Exception) { JSONArray() }
-                        all.put(JSONObject().put("name",name).put("source",url).put("code",code).put("enabled",true))
-                        prefs.edit().putString("custom_plugins",all.toString()).apply()
-                        Toast.makeText(activity,"Installed $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                        val duplicate = (0 until all.length()).any { index ->
+                            all.optJSONObject(index)?.optString("source","") == url
+                        }
+                        if(duplicate) {
+                            Toast.makeText(activity,"That plugin URL is already installed",Toast.LENGTH_LONG).show()
+                        } else {
+                            all.put(JSONObject().put("name",name).put("source",url).put("code",code).put("enabled",true))
+                            prefs.edit().putString("custom_plugins",all.toString()).apply()
+                            Toast.makeText(activity,"Installed $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                        }
                     }
                 } catch (e: Exception) { activity.runOnUiThread { Toast.makeText(activity,"Install failed: ${e.message}",Toast.LENGTH_LONG).show() } }
             }
