@@ -1452,6 +1452,11 @@ class MainActivity : Activity() {
     private fun runPlugins() {
         val scripts = prefs.getString("custom_plugins", "[]") ?: "[]"
         val arr = try { org.json.JSONArray(scripts) } catch (_: Exception) { org.json.JSONArray() }
+        val storageProblem = PluginStoragePolicy.validate(arr)
+        if (storageProblem != null) {
+            android.util.Log.w("NEXORA", "Skipped plugins: $storageProblem")
+            return
+        }
         for (i in 0 until arr.length()) {
             val p = arr.optJSONObject(i) ?: continue
             if (p.optBoolean("enabled", false)) {
