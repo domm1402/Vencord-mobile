@@ -13,17 +13,24 @@ object SecurePluginFetcher {
     @Throws(Exception::class)
     fun fetch(sourceUrl: String, maxBytes: Int, userAgent: String): Result {
         require(maxBytes > 0) { "Invalid download size limit" }
+        require(sourceUrl.length <= 2048) { "Plugin URL is too long" }
         var current = URL(sourceUrl)
-        require(current.protocol.equals("https", ignoreCase = true)) {
-            "Only HTTPS plugin sources are allowed"
-        }
-        for (redirect in 0..5) {
-            require(current.protocol.equals("https", ignoreCase = true)) {
-                "Redirected plugin source must remain HTTPS"
+        fun validateHttpsUrl(url: URL) {
+            require(url.protocol.equals("https", ignoreCase = true)) {
+                "Only HTTPS plugin sources are allowed"
             }
+            require(!url.host.isNullOrBlank()) { "Plugin URL needs a valid host" }
+            require(url.userInfo == null) { "URLs containing embedded credentials are not allowed" }
+            require(url.ref == null) { "Plugin URLs must not contain fragments" }
+            require(url.port == -1 || url.port in 1..65535) { "Plugin URL has an invalid port" }
+        }
+        validateHttpsUrl(current)
+        for (redirect in 0..5) {
+            validateHttpsUrl(current)
             val connection = (current.openConnection() as HttpURLConnection).apply {
                 connectTimeout = 15000
                 readTimeout = 20000
+                useCaches = false
                 instanceFollowRedirects = false
                 requestMethod = "GET"
                 setRequestProperty("User-Agent", userAgent)
@@ -36,9 +43,7 @@ object SecurePluginFetcher {
                         ?: throw IOException("Redirect did not include a destination")
                     if (redirect == 5) throw IOException("Too many redirects")
                     val next = URL(current, location)
-                    require(next.protocol.equals("https", ignoreCase = true)) {
-                        "Blocked insecure HTTP redirect"
-                    }
+                    validateHttpsUrl(next)
                     current = next
                     continue
                 }
