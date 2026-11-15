@@ -750,6 +750,12 @@ class MainActivity : Activity() {
                             applyCustomizations()
                             editor.evaluateJavascript("editor.setValue("+org.json.JSONObject.quote(css)+",-1)",null)
                             Toast.makeText(this,"Theme imported and applied locally",Toast.LENGTH_LONG).show()
+                        }.setNeutralButton("Append & apply") { _, _ ->
+                            val combined=prefs.getString("css","").orEmpty()+"\n\n"+css
+                            prefs.edit().putString("css",combined).apply()
+                            applyCustomizations()
+                            editor.evaluateJavascript("editor.setValue("+org.json.JSONObject.quote(combined)+",-1)",null)
+                            Toast.makeText(this,"Theme appended and applied",Toast.LENGTH_LONG).show()
                         }.setNegativeButton("Cancel",null).show()
                     }
                 } catch(e:Exception) { runOnUiThread { if(!isFinishing&&!isDestroyed) AlertDialog.Builder(this).setTitle("CSS import failed").setMessage(e.message ?: "Could not fetch CSS").setPositiveButton("OK",null).show() } }
