@@ -19,7 +19,7 @@ NEXORA 2.2 added duplicate-safe plugin execution per page, bounded manual plugin
 - Quick reaction emoji copy palette, selected-text translation, and a Discord Message Studio with formatting shortcuts.
 - Snippet Vault for reusable replies and templates, saved locally on-device.
 - Searchable bookmarks, Discord quick navigation, reader mode and adjustable text zoom.
-- Eight built-in CSS style presets for rounded, compact, bubble, minimal, high-contrast, developer and glass-like layouts.
+- Sixteen built-in CSS style presets for rounded, compact, bubble, minimal, high-contrast, developer and glass-like layouts.
 - Categorised emoji library covering faces, reactions, hearts, hands, animals, food, objects and symbols.
 - Custom accent colours and twelve interface font choices.
 - Developer Toolbox for JSON formatting, URL encoding/decoding, Base64 conversion, Discord Snowflake timestamps, and text statistics.
