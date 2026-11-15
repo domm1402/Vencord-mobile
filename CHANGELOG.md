@@ -1,3 +1,7 @@
+## 2.21 — Offline Code Lab
+- Added bundled Ace editor in the developer workspace with 12 syntax modes (JavaScript, TypeScript, JSON, HTML, CSS, Python, Kotlin, Java, Markdown, SQL, XML and Bash).
+- Local copy/save/load draft actions; editor is offline and drafts remain on-device.
+
 ## 2.23 — Navigation gesture shortcut
 - Long-press the floating NEXORA control to open browser navigation instantly; tap still opens the main hub.
 
