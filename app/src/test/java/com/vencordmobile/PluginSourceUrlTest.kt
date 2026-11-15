@@ -38,11 +38,8 @@ class PluginSourceUrlTest {
         assertThrows(IllegalArgumentException::class.java) {
             PluginSourceUrl.toRawUrl("https://github.com:8443/acme/plugin/blob/main/plugin.js")
         }
-        assertEquals("https://github.com:443/acme/plugin/blob/main/plugin.js",
-            PluginSourceUrl.toRawUrl("https://github.com:443/acme/plugin/blob/main/plugin.js").let {
-                // Standard port is accepted and canonicalized to raw source.
-                "https://github.com:443/acme/plugin/blob/main/plugin.js"
-            })
+        assertEquals("https://raw.githubusercontent.com/acme/plugin/main/plugin.js",
+            PluginSourceUrl.toRawUrl("https://github.com:443/acme/plugin/blob/main/plugin.js"))
     }
 
     @Test fun convertsExactGithubBlobHostToRawUrl() {
