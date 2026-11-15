@@ -118,7 +118,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                                 Toast.makeText(activity,"That plugin URL is already installed",Toast.LENGTH_LONG).show()
                             } else {
                                 AlertDialog.Builder(activity).setTitle("Review plugin: " + name)
-                                    .setMessage("Final source: " + downloaded.finalUrl + "\nSize: " + code.toByteArray(Charsets.UTF_8).size + " bytes\n\nThis JavaScript will execute inside your signed-in Discord page and may access account data. Install only if you trust this source.")
+                                    .setMessage("Final source: " + downloaded.finalUrl + "\nSize: " + code.toByteArray(Charsets.UTF_8).size + " bytes\n\nSource scan (heuristic):\n" + PluginRiskAnalyzer.summary(code) + "\n\nThis JavaScript will execute inside your signed-in Discord page and may access account data. Install only if you trust this source.")
                                     .setPositiveButton("Install") { _, _ ->
                                         a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
                                         save(a)
