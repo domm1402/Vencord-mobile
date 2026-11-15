@@ -302,7 +302,7 @@ class MainActivity : Activity() {
                     tile("Backup & restore","Export your Nexora settings") { backup() }
                 }
                 "Extensions" -> {
-                    tile("Plugin manager","Install and manage extensions") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
+                    tile("Plugin manager","Install and manage extensions") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { web.reload() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
                     tile("Feature library","Toggle interface enhancements") { showFeatureLibrary() }
                     tile("Chat tools","Reactions, translation and message helpers") { showChatTools() }
                     tile("About compatibility","Understand what works and what is experimental") { showNexoraAbout() }
@@ -457,7 +457,7 @@ class MainActivity : Activity() {
             val lp = LinearLayout.LayoutParams(-1, -2); lp.bottomMargin = dp(7); panel.addView(row, lp)
         }
         group("Customise")
-        item("Plugins & extensions", "Install, enable and manage your add-ons") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { runPlugins() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
+        item("Plugins & extensions", "Install, enable and manage your add-ons") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { web.reload() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC() } }.open() }
         item("Themes & appearance", "Colours, message spacing, avatars and layout") { showThemes() }
         item("Accent colour & typography", "Choose a custom accent and interface font") { showTypographySettings() }
         item("Feature library", "A larger collection of practical chat and interface controls") { showFeatureLibrary() }
