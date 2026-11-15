@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.8
+
+- Expand the theme gallery from 11 to 20 colour palettes, including Nord, Dracula, Catppuccin, Cyberpunk, Solarized, and Matrix-inspired palettes.
+- Expand typography choices from 6 to 12 CSS font stacks.
+- Bump Android version code to 12 and version name to 2.8.
+
+
 ## 2.7
 
 - Reject malformed UTF-8 plugin downloads rather than silently replacing invalid bytes.
