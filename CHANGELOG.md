@@ -1,3 +1,7 @@
+## 2.20 — Gesture & navigation refinement
+- Disabled pull-to-refresh so downward swipes in Discord cannot accidentally reload the app. Reload remains available in Browser tools.
+- Added dedicated navigation controls: back/forward, Discord home, smooth scroll top/bottom, reload/stop and copy URL.
+
 # Changelog
 
 ## 2.19
