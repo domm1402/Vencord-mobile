@@ -1,10 +1,10 @@
 # NEXORA
 
-**Current version: 2.1**
+**Current version: 2.2**
 
 A redesigned Android Discord client shell with a full-screen NEXORA control deck with local interface customisation. It is not affiliated with Discord or the Vencord project.
 
-## NEXORA 2.0
+## NEXORA 2.2
 
 NEXORA 2.2 adds duplicate-safe plugin execution per page, bounded manual plugin editing and main-page network error feedback. It also includes native Android file selection for Discord uploads and attachment flows, safer download handling, secure extension fetching, safer settings restore and WebView hardening. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
 
@@ -14,7 +14,7 @@ NEXORA 2.2 adds duplicate-safe plugin execution per page, bounded manual plugin 
 - Modern dark Control Centre, mobile/desktop page mode, navigation and find-on-page.
 - Eleven built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 21 local chat/layout toggles.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
-- JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links, with bounded downloads, HTTPS-only redirect handling and duplicate-install checks.
+- JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links, with bounded downloads, strict HTTPS URL validation, redirect protection and duplicate-install checks.
 - JSON plugin repository browser with the same secure download handling.
 - Quick reaction emoji copy palette, selected-text translation, and a Discord Message Studio with formatting shortcuts.
 - Snippet Vault for reusable replies and templates, saved locally on-device.
