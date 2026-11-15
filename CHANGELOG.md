@@ -1,3 +1,7 @@
+## 2.21 — Offline CSS workbench
+- Bundled the Ace editor into the APK and wired a syntax-highlighted CSS editor with local save/apply and clear actions.
+- The editor runs in a separate WebView; Discord's own WebView continues to deny local file access.
+
 ## 2.20 — Gesture & navigation refinement
 - Disabled pull-to-refresh so downward swipes in Discord cannot accidentally reload the app. Reload remains available in Browser tools.
 - Added dedicated navigation controls: back/forward, Discord home, smooth scroll top/bottom, reload/stop and copy URL.
