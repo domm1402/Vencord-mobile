@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.17
+
+- Normalize all remaining palette array separators after CI caught escaped newline literals.
+- Bump Android version code to 21 and version name to 2.17.
+
+
 ## 2.16
 
 - Fix a malformed theme palette separator caught by Kotlin CI.
