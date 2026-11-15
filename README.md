@@ -12,7 +12,7 @@ NEXORA 2.25 adds plugin runtime diagnostics (success/error state, stack traces a
 
 ## Features
 
-- Discord web app in an Android WebView, with swipe refresh, Android file downloads, a native download history and Android file-picker support for uploads/attachments. Third-party links open outside the signed-in Discord WebView.
+- Discord web app in an Android WebView, with refresh gestures deliberately disabled to avoid accidental reloads, Android file downloads, a native download history and Android file-picker support for uploads/attachments. Third-party links open outside the signed-in Discord WebView.
 - Modern dark Control Centre, mobile/desktop page mode, navigation and find-on-page.
 - Twenty built-in themes, custom CSS with secure remote CSS import, compact messages, avatar controls, rounded message cards, and a feature library with 38 local chat/layout toggles.
 - Plugin runtime diagnostics showing execution states and errors, with reload and disable-all recovery controls.
@@ -56,7 +56,7 @@ Plugin JavaScript executes in the signed-in Discord page and can access page dat
 
 ## Feature scope
 
-This project prioritises working, testable features over artificial APK size or empty feature counts. A larger APK is not inherently better; bundled assets, libraries and offline resources should only be added when they provide real functionality. The feature library currently provides 21 selectable local interface controls. Desktop Vencord plugins that depend on native desktop APIs are not automatically compatible with Android WebView.
+This project prioritises working, testable features over artificial APK size or empty feature counts. A larger APK is not inherently better; bundled assets, libraries and offline resources should only be added when they provide real functionality. The feature library provides selectable local interface controls and a searchable built-in plugin catalog. Desktop Vencord plugins that depend on native desktop APIs are not automatically compatible with Android WebView.
 
 ## Build
 
