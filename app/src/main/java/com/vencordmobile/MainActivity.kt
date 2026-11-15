@@ -40,7 +40,11 @@ class MainActivity : Activity() {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.databaseEnabled = true
-        web.settings.domStorageEnabled = true
+        // Discord uploads use content:// URIs; local file:// access is not needed.
+        web.settings.allowFileAccess = false
+        web.settings.allowContentAccess = true
+        web.settings.javaScriptCanOpenWindowsAutomatically = false
+        web.settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
         web.settings.useWideViewPort = true
         web.settings.loadWithOverviewMode = true
         web.settings.mediaPlaybackRequiresUserGesture = false
