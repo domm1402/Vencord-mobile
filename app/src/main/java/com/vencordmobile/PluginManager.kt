@@ -32,12 +32,18 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
             .setView(input)
             .setPositiveButton("Fetch repository") { _, _ ->
                 val url = input.text.toString().trim()
-                if (!url.startsWith("https://")) { Toast.makeText(activity,"HTTPS repository URL required",Toast.LENGTH_SHORT).show() }
-                else {
+                try {
+                    SecurePluginFetcher.parseHttpsUrl(url)
+                    require(url.length <= 2048) { "Repository URL is too long" }
                     val alreadySaved = (0 until saved.length()).any { saved.optString(it) == url }
-                    if (!alreadySaved) saved.put(url)
+                    if (!alreadySaved) {
+                        require(saved.length() < 30) { "You can save up to 30 repositories" }
+                        saved.put(url)
+                    }
                     prefs.edit().putString("plugin_repos",saved.toString()).apply()
                     fetchRepository(url)
+                } catch (e: Exception) {
+                    Toast.makeText(activity, e.message ?: "Invalid HTTPS repository URL", Toast.LENGTH_LONG).show()
                 }
             }
             .setNeutralButton("Saved repositories") { _, _ ->
@@ -53,11 +59,14 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
         thread {
             try {
                 val body = SecurePluginFetcher.fetch(manifestUrl,1000000,"NEXORA-PluginManager").text
-                val entries = JSONObject(body).optJSONArray("plugins") ?: throw Exception("Manifest needs a plugins array")
+                val entries = PluginManifestValidator.parse(body)
                 postToUi {
-                    if (entries.length() == 0) { Toast.makeText(activity,"No plugins in this repository",Toast.LENGTH_SHORT).show(); return@postToUi }
-                    val names = Array(entries.length()) { i -> val p=entries.optJSONObject(i) ?: JSONObject(); p.optString("name","Unnamed plugin") + "  •  " + p.optString("description", "No description") }
-                    AlertDialog.Builder(activity).setTitle("Repository plugins").setItems(names) { _, index -> installRepositoryPlugin(entries.optJSONObject(index) ?: JSONObject()) }.setNegativeButton("Close",null).show()
+                    if (entries.isEmpty()) { Toast.makeText(activity,"No plugins in this repository",Toast.LENGTH_SHORT).show(); return@postToUi }
+                    val names = entries.map { it.name + "  •  " + it.description }.toTypedArray()
+                    AlertDialog.Builder(activity).setTitle("Repository plugins").setItems(names) { _, index ->
+                        val entry = entries[index]
+                        installRepositoryPlugin(JSONObject().put("name",entry.name).put("description",entry.description).put("url",entry.url))
+                    }.setNegativeButton("Close",null).show()
                 }
             } catch (e: Exception) { postToUi { AlertDialog.Builder(activity).setTitle("Repository error").setMessage(e.message ?: "Could not read repository").setPositiveButton("OK",null).show() } }
         }
