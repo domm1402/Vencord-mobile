@@ -42,6 +42,12 @@ class PluginSourceUrlTest {
             PluginSourceUrl.toRawUrl("https://github.com:443/acme/plugin/blob/main/plugin.js"))
     }
 
+    @Test fun rejectsExcessivelyLongSourceUrlInput() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PluginSourceUrl.toRawUrl("https://cdn.example/" + "a".repeat(2048))
+        }
+    }
+
     @Test fun convertsExactGithubBlobHostToRawUrl() {
         assertEquals(
             "https://raw.githubusercontent.com/acme/plugin/main/src/plugin.js",
