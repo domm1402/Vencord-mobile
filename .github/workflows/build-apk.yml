@@ -47,6 +47,11 @@ jobs:
           mkdir -p app/src/main/assets/ace
           tar -xzf ace-builds-1.43.3.tgz --strip-components=2 -C app/src/main/assets/ace package/src-min-noconflict
           rm ace-builds-1.43.3.tgz
+      - name: Bundle full Unicode Noto CJK font for multilingual chat
+        run: |
+          mkdir -p app/src/main/assets/fonts
+          curl --fail --location --retry 3 https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTC/NotoSansCJK-Regular.ttc -o app/src/main/assets/fonts/NotoSansCJK-Regular.ttc
+          curl --fail --location --retry 3 https://raw.githubusercontent.com/notofonts/noto-cjk/main/LICENSE -o app/src/main/assets/fonts/NOTO-CJK-LICENSE.txt
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
