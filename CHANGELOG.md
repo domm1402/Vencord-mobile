@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.19
+
+- Refresh all five feature profiles to cover newer accessibility, event, invite, embed and channel toggles.
+- Bump Android version code to 23 and version name to 2.19.
+
+
 ## 2.18
 
 - Wire 12 invite, event, call, popout, tooltip and link-button filters into the CSS engine.
