@@ -4,7 +4,7 @@ import org.json.JSONArray
 
 /** Keep local plugin storage bounded before it is persisted or injected into WebView. */
 internal object PluginStoragePolicy {
-    const val MAX_PLUGINS = 50
+    const val MAX_PLUGINS = 150
     const val MAX_PLUGIN_BYTES = 500_000
     const val MAX_TOTAL_CODE_BYTES = 2_000_000
 
