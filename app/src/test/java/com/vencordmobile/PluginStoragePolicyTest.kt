@@ -36,7 +36,7 @@ class PluginStoragePolicyTest {
 
     @Test fun rejectsMissingAndEmptyPluginSource() {
         assertEquals("Plugin entry 0 has invalid code", PluginStoragePolicy.validate(JSONArray().put(JSONObject())))
-        assertEquals("Plugin entry 0 has empty code", PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", "  \\n"))))
+        assertEquals("Plugin entry 0 has empty code", PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", "   "))))
     }
 
     @Test fun countsUtf8BytesRatherThanCharacters() {
