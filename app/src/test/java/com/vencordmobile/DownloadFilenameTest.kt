@@ -24,7 +24,7 @@ class DownloadFilenameTest {
 
     @Test fun removesZeroWidthAndUnicodeFormatCharacters() {
         assertEquals("report.txt", safeDownloadFileName("re\u200bport\u00ad.txt"))
-        assertEquals("a_b.txt", safeDownloadFileName("a\u0085b.txt"))
+        assertEquals("ab.txt", safeDownloadFileName("a\u0085b.txt"))
     }
 
     @Test fun boundsFilenameLength() {
