@@ -318,7 +318,7 @@ class MainActivity : Activity() {
     }
 
     private fun showBrowserTools() {
-        val opts = arrayOf("Back","Forward","Find on page","Copy page URL","Desktop / mobile mode","Toggle reader mode","Page zoom","Reload","Clear cache","Download history")
+        val opts = arrayOf("Back","Forward","Find on page","Copy page URL","Desktop / mobile mode","Toggle reader mode","Page zoom","Reload","Clear cache","Download history","Page information")
         AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i ->
             when(i) {
                 0 -> if(web.canGoBack()) web.goBack()
@@ -331,8 +331,28 @@ class MainActivity : Activity() {
                 7 -> web.reload()
                 8 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show()
                 9 -> showDownloads()
+                10 -> showPageInfo()
             }
         }.show()
+    }
+
+    private fun showPageInfo() {
+        val engine = if (android.os.Build.VERSION.SDK_INT >= 26) {
+            WebView.getCurrentWebViewPackage()?.versionName ?: "Unknown"
+        } else "Android System WebView"
+        val info = "Page: " + (web.title ?: "Untitled") +
+            "\nURL: " + (web.url ?: "Not loaded") +
+            "\nWebView engine: " + engine +
+            "\nDisplay mode: " + (if (prefs.getBoolean("desktop_mode", false)) "Desktop" else "Mobile") +
+            "\nText zoom: " + web.settings.textZoom + "%" +
+            "\nJavaScript: enabled" +
+            "\nSafe Browsing: enabled where supported"
+        AlertDialog.Builder(this).setTitle("Page information").setMessage(info)
+            .setPositiveButton("Copy details") { _, _ ->
+                val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("NEXORA page information", info))
+                Toast.makeText(this, "Page details copied", Toast.LENGTH_SHORT).show()
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun showDownloads() {
