@@ -24,6 +24,18 @@ class PluginManifestValidatorTest {
         }
     }
 
+    @Test fun rejectsCoercedManifestFields() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PluginManifestValidator.parse("""{"plugins":[{"name":123,"url":"https://example.com/a.js"}]}""")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            PluginManifestValidator.parse("""{"plugins":[{"description":{},"url":"https://example.com/a.js"}]}""")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            PluginManifestValidator.parse("""{"plugins":[{"url":123}]}""")
+        }
+    }
+
     @Test fun rejectsCredentialsAndFragments() {
         assertThrows(IllegalArgumentException::class.java) {
             PluginManifestValidator.parse("""{"plugins":[{"url":"https://user:pass@example.com/a.js"}]}""")
