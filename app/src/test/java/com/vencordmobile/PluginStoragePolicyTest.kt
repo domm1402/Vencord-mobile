@@ -33,6 +33,19 @@ class PluginStoragePolicyTest {
         assertEquals("You can store up to 50 plugins", PluginStoragePolicy.validate(plugins))
     }
 
+    @Test fun acceptsExactPerPluginAndAggregateLimits() {
+        assertNull(PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", "x".repeat(500000)))))
+        val exactTotal = JSONArray()
+        repeat(4) { exactTotal.put(JSONObject().put("code", "x".repeat(500000))) }
+        assertNull(PluginStoragePolicy.validate(exactTotal))
+    }
+
+    @Test fun acceptsExactPluginCountLimit() {
+        val plugins = JSONArray()
+        repeat(PluginStoragePolicy.MAX_PLUGINS) { plugins.put(JSONObject().put("code", "x")) }
+        assertNull(PluginStoragePolicy.validate(plugins))
+    }
+
     @Test fun capsIndividualAndCombinedCode() {
         assertEquals("A plugin exceeds the 500 KB limit",
             PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code","x".repeat(500_001)))))
