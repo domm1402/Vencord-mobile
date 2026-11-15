@@ -304,6 +304,7 @@ class MainActivity : Activity() {
                     tile("Snippet vault","Save reusable replies and templates") { showSnippetVault() }
                     tile("Emoji library","Browse and copy categorised emoji") { showEmojiLibrary() }
                     tile("Developer toolbox","JSON, Base64, URLs and Discord ID tools") { showDeveloperToolbox() }
+                    tile("Code Lab","Offline syntax-highlighted editor, 12 language modes and drafts") { showCodeWorkspace() }
                     tile("Rich Presence","Configure and preview activity data") { showRPC() }
                     tile("Browser tools","Reader mode, zoom, find and reload") { showBrowserTools() }
                     tile("Navigation controls","Back, forward, home, scroll top/bottom and reload") { showNavigationControls() }
@@ -501,6 +502,7 @@ class MainActivity : Activity() {
         item("Message studio", "Format messages, manage reusable snippets and copy templates") { showMessageStudio() }
         item("Snippet vault", "Save reusable replies, templates and formatted text") { showSnippetVault() }
         item("Developer toolbox", "Format JSON, encode text, decode Base64 and inspect Discord IDs") { showDeveloperToolbox() }
+        item("Code Lab", "Offline syntax-highlighted editor, language modes and drafts") { showCodeWorkspace() }
         item("Backup settings", "Copy a backup of your preferences") { backup() }
         item("Bookmarks", "Save, search and reopen Discord pages") { showBookmarks() }
         item("Discord quick navigation", "Jump to DMs, friends, settings, Nitro and discovery") { showQuickNavigation() }
@@ -1307,6 +1309,27 @@ class MainActivity : Activity() {
             }
             .setNeutralButton("Save draft") { _, _ -> prefs.edit().putString("message_studio_draft", input.text.toString()).apply(); Toast.makeText(this, "Draft saved locally", Toast.LENGTH_SHORT).show() }
             .setNegativeButton("Close", null).show()
+    }
+
+    private fun showCodeWorkspace() {
+        val dialog = android.app.Dialog(this)
+        val panel = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setBackgroundColor(Color.rgb(14,16,24));setPadding(dp(12),dp(12),dp(12),dp(12)) }
+        panel.addView(TextView(this).apply{text="NEXORA CODE LAB • OFFLINE EDITOR";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(190,174,255))})
+        val editor=WebView(this).apply{settings.javaScriptEnabled=true;settings.domStorageEnabled=false;settings.allowFileAccess=false;settings.allowContentAccess=false;setBackgroundColor(Color.rgb(18,20,28));webViewClient=WebViewClient()}
+        val html="""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body,#editor{height:100%;margin:0;background:#171923;color:#e8eaf2}</style><script src="file:///android_asset/ace/src-min-noconflict/ace.js"></script></head><body><div id="editor">// NEXORA scratchpad
+// Offline editor. Your code stays on this device.
+</div><script>var e=ace.edit('editor');e.setTheme('ace/theme/tomorrow_night');e.session.setMode('ace/mode/javascript');e.setOptions({fontSize:'14px',showPrintMargin:false,wrap:true});window.setMode=function(m){e.session.setMode('ace/mode/'+m)};window.getCode=function(){return e.getValue()};window.setCode=function(s){e.setValue(s,-1)};</script></body></html>"""
+        editor.loadDataWithBaseURL("https://nexora.local/",html,"text/html","UTF-8",null)
+        panel.addView(editor,LinearLayout.LayoutParams(-1,0,1f))
+        val modes=arrayOf("JavaScript","TypeScript","JSON","HTML","CSS","Python","Kotlin","Java","Markdown","SQL","XML","Bash")
+        val spinner=Spinner(this).apply{adapter=ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,modes);onItemSelectedListener=object:android.widget.AdapterView.OnItemSelectedListener{override fun onNothingSelected(parent:android.widget.AdapterView<*>?){};override fun onItemSelected(parent:android.widget.AdapterView<*>?,view:android.view.View?,position:Int,id:Long){editor.evaluateJavascript("setMode('"+modes[position].lowercase()+"')",null)}}}
+        panel.addView(spinner,LinearLayout.LayoutParams(-1,dp(44)))
+        val buttons=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+        fun btn(label:String,action:()->Unit){val b=Button(this@MainActivity).apply{text=label;isAllCaps=false;textSize=11f};buttons.addView(b,LinearLayout.LayoutParams(0,dp(45),1f));b.setOnClickListener{action()}}
+        btn("Copy"){editor.evaluateJavascript("getCode()"){v->try{val code=org.json.JSONTokener(v).nextValue().toString();val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager;cm.setPrimaryClip(android.content.ClipData.newPlainText("NEXORA code",code));Toast.makeText(this,"Code copied",Toast.LENGTH_SHORT).show()}catch(_:Exception){}}}
+        btn("Save"){editor.evaluateJavascript("getCode()"){v->try{prefs.edit().putString("code_lab_draft",org.json.JSONTokener(v).nextValue().toString()).apply();Toast.makeText(this,"Draft saved",Toast.LENGTH_SHORT).show()}catch(_:Exception){}}}
+        btn("Load"){editor.evaluateJavascript("setCode("+org.json.JSONObject.quote(prefs.getString("code_lab_draft","// saved draft"))+")",null)}
+        panel.addView(buttons);dialog.setContentView(panel);dialog.show();dialog.window?.setLayout(-1,(resources.displayMetrics.heightPixels*0.9).toInt())
     }
 
     private fun showDeveloperToolbox() {
