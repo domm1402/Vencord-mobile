@@ -1012,7 +1012,19 @@ class MainActivity : Activity() {
                 "highlight_mentions" to "Highlight @mentions",
                 "underline_links" to "Underline links for clarity",
                 "square_corners" to "Use square-corner interface",
-                "disable_hover" to "Disable hover effects"\n            )
+                "disable_hover" to "Disable hover effects",
+                "hide_banners" to "Hide promotional banners",
+                "hide_channel_topic" to "Hide channel topic headers",
+                "hide_unread_pills" to "Hide unread count pills",
+                "hide_online_members" to "Hide online member rows",
+                "hide_server_labels" to "Hide server list text labels",
+                "disable_backdrop_blur" to "Disable backdrop blur",
+                "transparent_panels" to "Make panels transparent",
+                "focus_mode" to "Focus mode: quiet chat",
+                "high_contrast" to "High contrast text",
+                "sticky_composer" to "Keep message composer visible",
+                "hide_thread_buttons" to "Hide thread action buttons",
+                "hide_animated_backgrounds" to "Disable animated backgrounds"\n            )
         )
         val all = groups.values.flatten()
         val labels = all.map { it.second }.toTypedArray()
@@ -1597,6 +1609,18 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("feature_underline_links",false)) rules.append("a[href]{text-decoration:underline!important;text-underline-offset:2px!important}")
         if(prefs.getBoolean("feature_square_corners",false)) rules.append("*{border-radius:0!important}")
         if(prefs.getBoolean("feature_disable_hover",false)) rules.append("*:hover{transition:none!important;filter:none!important}")
+        if(prefs.getBoolean("feature_hide_banners",false)) rules.append("[class*=banner],[class*=promoBanner],[class*=notice]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_channel_topic",false)) rules.append("[class*=topic],[class*=channelHeader] [class*=subtitle]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_unread_pills",false)) rules.append("[class*=unreadBadge],[class*=numberBadge]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_online_members",false)) rules.append("[class*=memberList] [class*=online]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_server_labels",false)) rules.append("[class*=guildName],[class*=guilds] [class*=label]{display:none!important}")
+        if(prefs.getBoolean("feature_disable_backdrop_blur",false)) rules.append("*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}")
+        if(prefs.getBoolean("feature_transparent_panels",false)) rules.append("[class*=container],[class*=panel],[class*=sidebar]{background-color:transparent!important}")
+        if(prefs.getBoolean("feature_focus_mode",false)) rules.append("[class*=activityPanel],[class*=memberList],[class*=banner],[class*=promo]{display:none!important}[class*=chatContent]{max-width:100%!important}")
+        if(prefs.getBoolean("feature_high_contrast",false)) rules.append("body{--text-muted: #d5d5d5!important} [class*=text]{color:var(--text-normal)!important}")
+        if(prefs.getBoolean("feature_sticky_composer",false)) rules.append("[class*=channelTextArea]{position:sticky!important;bottom:0!important;z-index:5!important}")
+        if(prefs.getBoolean("feature_hide_thread_buttons",false)) rules.append("[class*=threadButton],[aria-label*=thread]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_animated_backgrounds",false)) rules.append("video,[class*=animatedBackground]{animation:none!important;display:none!important}")
         if(prefs.getBoolean("feature_compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("feature_cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
         if(prefs.getBoolean("feature_bigtext",false)) rules.append("[class*=messageContent]{font-size:16px!important;line-height:1.45!important}")
