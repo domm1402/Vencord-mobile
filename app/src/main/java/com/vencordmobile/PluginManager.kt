@@ -10,7 +10,7 @@ import kotlin.concurrent.thread
 
 class PluginManager(private val activity: Activity, private val openFeature: (Int) -> Unit) {
     private val prefs = activity.getSharedPreferences("vcm_prefs", Activity.MODE_PRIVATE)
-    private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview")
+    private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview", "Built-in plugin library")
     private fun postToUi(action: () -> Unit) {
         if (activity.isFinishing || activity.isDestroyed) return
         activity.runOnUiThread {
