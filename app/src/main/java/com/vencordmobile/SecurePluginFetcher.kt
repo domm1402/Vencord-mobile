@@ -10,6 +10,24 @@ import java.nio.charset.StandardCharsets
 object SecurePluginFetcher {
     data class Result(val text: String, val finalUrl: String)
 
+
+    /** Parse a user-selected plugin URL without accepting insecure schemes or URL credentials. */
+    internal fun parseHttpsUrl(sourceUrl: String): URL {
+        val parsed = URL(sourceUrl)
+        require(parsed.protocol.equals("https", ignoreCase = true) && parsed.host.isNotBlank()) {
+            "Only valid HTTPS plugin sources are allowed"
+        }
+        require(parsed.userInfo == null) { "Plugin source URLs must not contain embedded credentials" }
+        return parsed
+    }
+
+    /** Resolve redirects manually so HTTPS-to-HTTP downgrades can never be followed. */
+    internal fun resolveHttpsRedirect(current: URL, location: String): URL {
+        require(location.isNotBlank()) { "Redirect did not include a destination" }
+        val next = URL(current, location)
+        return parseHttpsUrl(next.toString())
+    }
+
     @Throws(Exception::class)
     fun fetch(sourceUrl: String, maxBytes: Int, userAgent: String): Result {
         require(maxBytes > 0) { "Invalid download size limit" }
