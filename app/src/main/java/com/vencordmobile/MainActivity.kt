@@ -1420,13 +1420,6 @@ class MainActivity : Activity() {
                     val values=root.getJSONObject("preferences")
                     val out=prefs.edit()
                     var skipped = 0
-                    val booleanKeys = setOf(
-                        "desktop_mode", "profile_overlay", "reader_mode", "compact", "upsells",
-                        "noavatars", "cards", "bigtext", "compact_channels", "hide_members",
-                        "hide_activity", "hide_embeds", "hide_attachments", "reduce_motion",
-                        "hide_sticker_buttons"
-                    )
-                    val integerKeys = setOf("theme", "font_choice", "rpc_type")
                     val keys=values.keys()
                     while(keys.hasNext()) {
                         val key=keys.next()
@@ -1441,25 +1434,12 @@ class MainActivity : Activity() {
                         if (item == null) { skipped++; continue }
                         val value=item.optString("value", "")
                         val declared=item.optString("type", "")
-                        val expected=when {
-                            key in booleanKeys || key.startsWith("feature_") || key == "rpc_timestamps_enabled" -> "boolean"
-                            key in integerKeys -> "int"
-                            else -> "string"
-                        }
-                        if (declared != expected) { skipped++; continue }
-                        when(expected) {
-                            "boolean" -> {
-                                if (value != "true" && value != "false") { skipped++; continue }
-                                out.putBoolean(key, value == "true")
-                            }
-                            "int" -> {
-                                val parsed=value.toIntOrNull()
-                                if (parsed == null || (key == "theme" && parsed !in 0..10) ||
-                                    (key == "font_choice" && parsed !in 0..5) ||
-                                    (key == "rpc_type" && parsed !in 0..5)) { skipped++; continue }
-                                out.putInt(key, parsed)
-                            }
-                            else -> out.putString(key, value.take(100000))
+                        val parsed = BackupPreferenceValidator.parse(key, declared, value)
+                        when (parsed) {
+                            is Boolean -> out.putBoolean(key, parsed)
+                            is Int -> out.putInt(key, parsed)
+                            is String -> out.putString(key, parsed)
+                            else -> { skipped++; continue }
                         }
                     }
                     out.apply()
