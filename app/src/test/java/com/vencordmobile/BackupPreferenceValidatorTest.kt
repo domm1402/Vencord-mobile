@@ -14,6 +14,7 @@ class BackupPreferenceValidatorTest {
         assertEquals(10, BackupPreferenceValidator.parse("theme", "int", "10"))
         assertEquals(5, BackupPreferenceValidator.parse("font_choice", "int", "5"))
         assertEquals(5, BackupPreferenceValidator.parse("rpc_type", "int", "5"))
+        assertEquals(175, BackupPreferenceValidator.parse("page_text_zoom", "int", "175"))
     }
 
     @Test fun rejectsUnknownKeysAndExecutablePlugins() {
@@ -31,6 +32,7 @@ class BackupPreferenceValidatorTest {
         assertNull(BackupPreferenceValidator.parse("theme", "int", "999"))
         assertNull(BackupPreferenceValidator.parse("font_choice", "int", "-1"))
         assertNull(BackupPreferenceValidator.parse("rpc_type", "int", "not-a-number"))
+        assertNull(BackupPreferenceValidator.parse("page_text_zoom", "int", "201"))
     }
 
     @Test fun boundsRestoredText() {
