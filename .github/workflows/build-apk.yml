@@ -50,8 +50,8 @@ jobs:
       - name: Bundle full Unicode Noto CJK font for multilingual chat
         run: |
           mkdir -p app/src/main/assets/fonts
-          curl --fail --location --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/OTC/NotoSansCJK-Regular.ttc -o app/src/main/assets/fonts/NotoSansCJK-Regular.ttc
-          curl --fail --location --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/LICENSE -o app/src/main/assets/fonts/NOTO-CJK-LICENSE.txt
+          curl --fail --location --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTC/NotoSansCJK-Regular.ttc -o app/src/main/assets/fonts/NotoSansCJK-Regular.ttc
+          curl --fail --location --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/LICENSE -o app/src/main/assets/fonts/NOTO-CJK-LICENSE.txt
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
