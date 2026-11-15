@@ -603,6 +603,14 @@ class MainActivity : Activity() {
             "High contrast readability",
             "Monospace developer chat",
             "Soft glass panels",
+            "No borders",
+            "Wide reading mode",
+            "Dense developer mode",
+            "Warm parchment",
+            "Terminal green",
+            "Blue glass",
+            "Pink neon",
+            "Quiet minimal",
             "Reset custom styles"
         )
         val css = arrayOf(
@@ -613,6 +621,14 @@ class MainActivity : Activity() {
             "[class*=messageContent]{font-size:17px!important;line-height:1.7!important;letter-spacing:.01em!important}[class*=markup]{color:var(--text-normal)!important}",
             "[class*=messageContent],pre,code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important}[class*=messageContent]{font-size:13px!important;line-height:1.6!important}",
             "[class*=messageListItem],[class*=containerDefault],[class*=membersWrap]{backdrop-filter:blur(12px)!important}[class*=messageListItem]{background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.06)!important;border-radius:12px!important;margin:4px!important}",
+            "[class*=messageListItem],[class*=containerDefault]{border:0!important;box-shadow:none!important}",
+            "[class*=messageContent]{max-width:900px!important;font-size:16px!important;line-height:1.8!important}",
+            "pre,code,[class*=messageContent]{font-family:ui-monospace,monospace!important;background:rgba(0,0,0,.12)!important}",
+            "body{background:#f5ead8!important;color:#30271d!important}[class*=messageContent]{color:#30271d!important}",
+            "[class*=messageContent],pre,code{color:#a7f3a0!important;background:#061006!important;font-family:monospace!important}",
+            "[class*=messageListItem]{background:rgba(80,180,255,.08)!important;border:1px solid rgba(80,180,255,.12)!important;border-radius:12px!important}",
+            "[class*=messageListItem]{box-shadow:0 0 12px rgba(255,0,180,.12)!important;border:1px solid rgba(255,0,180,.18)!important}",
+            "[class*=messageListItem]{background:transparent!important;border:0!important;margin:0!important;padding:2px!important}[class*=messageContent]{line-height:1.35!important}",
             ""
         )
         AlertDialog.Builder(this).setTitle("Style preset gallery")
