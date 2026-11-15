@@ -119,7 +119,7 @@ class MainActivity : Activity() {
         }
         root.addView(swipe, FrameLayout.LayoutParams(-1, -1))
         val menu = Button(this).apply {
-            text = "V"
+            text = "N"
             textSize = 21f
             setTextColor(Color.WHITE)
             typeface = Typeface.DEFAULT_BOLD
@@ -319,12 +319,12 @@ class MainActivity : Activity() {
         }
         val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val logo = TextView(this).apply {
-            text = "V"; textSize = 25f; typeface = Typeface.DEFAULT_BOLD; gravity = Gravity.CENTER; setTextColor(Color.WHITE)
+            text = "N"; textSize = 25f; typeface = Typeface.DEFAULT_BOLD; gravity = Gravity.CENTER; setTextColor(Color.WHITE)
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; colors = intArrayOf(Color.rgb(149, 105, 255), Color.rgb(83, 57, 194)) }
         }
         header.addView(logo, LinearLayout.LayoutParams(dp(50), dp(50)))
         val titleBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(12), 0, 0, 0) }
-        titleBox.addView(TextView(this).apply { text = "Vencord Mobile"; textSize = 20f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE) })
+        titleBox.addView(TextView(this).apply { text = "NEXORA"; textSize = 20f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE) })
         titleBox.addView(TextView(this).apply { text = "CONTROL CENTRE"; textSize = 10f; setTextColor(Color.rgb(171, 164, 192)) })
         header.addView(titleBox)
         panel.addView(header)
@@ -359,7 +359,7 @@ class MainActivity : Activity() {
             AlertDialog.Builder(this).setTitle("Browser tools").setItems(opts) { _, i -> when(i) { 0 -> if(web.canGoBack()) web.goBack(); 1 -> if(web.canGoForward()) web.goForward(); 2 -> findOnPage(); 3 -> { val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; cm.setPrimaryClip(android.content.ClipData.newPlainText("Page URL",web.url ?: "")); Toast.makeText(this,"Copied",Toast.LENGTH_SHORT).show() }; 4 -> toggleDesktopMode(); 5 -> toggleReaderMode(); 6 -> showPageZoom(); 7 -> web.reload(); 8 -> AlertDialog.Builder(this).setMessage("Clear cached web files?").setPositiveButton("Clear") { _, _ -> web.clearCache(true) }.setNegativeButton("Cancel",null).show() } }.show()
         }
         item("Open Discord in browser", "Use your external browser") { startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.com/app"))) }
-        item("About & limitations", "Compatibility, privacy and feature details") { AlertDialog.Builder(this).setTitle("About Vencord Mobile").setMessage("Independent Android Discord WebView with the official Vencord browser userscript bundled at build time. Vencord plugins that depend on desktop-only native APIs may not work. Genuine Nitro and account badges cannot be granted by a client mod. Live Android Rich Presence is supported by Discord Social SDK 1.10+ and needs a registered Application ID and SDK package.").setPositiveButton("OK",null).show() }
+        item("About & limitations", "Compatibility, privacy and feature details") { AlertDialog.Builder(this).setTitle("About NEXORA").setMessage("Independent Android Discord WebView with the official Vencord browser userscript bundled at build time. Vencord plugins that depend on desktop-only native APIs may not work. Genuine Nitro and account badges cannot be granted by a client mod. Live Android Rich Presence is supported by Discord Social SDK 1.10+ and needs a registered Application ID and SDK package.").setPositiveButton("OK",null).show() }
         val scroll = ScrollView(this).apply { addView(panel) }
         val dialog = AlertDialog.Builder(this).setView(scroll).create()
         dialog.show()
@@ -1278,28 +1278,31 @@ class MainActivity : Activity() {
         val snapshot = org.json.JSONObject()
         val values = org.json.JSONObject()
         for ((key, value) in prefs.all) {
+            // Executable plugin source is intentionally excluded from portable backups.
+            if (key == "custom_plugins") continue
             val type = when(value) { is Boolean -> "boolean"; is Int -> "int"; is Long -> "long"; is Float -> "float"; else -> "string" }
             values.put(key, org.json.JSONObject().put("type",type).put("value",value.toString()))
         }
-        snapshot.put("format","vencord-mobile-settings").put("version",1).put("preferences",values)
+        snapshot.put("format","nexora-settings").put("version",2).put("preferences",values)
         val editor = EditText(this).apply { setText(snapshot.toString(2)); minLines=8; gravity=Gravity.TOP; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
         AlertDialog.Builder(this).setTitle("Backup & restore")
-            .setMessage("Copy this JSON to back up your settings, or paste a previous Vencord Mobile backup and choose Restore.")
+            .setMessage("Copy this JSON to back up your settings, or paste an older NEXORA backup and choose Restore. Plugin code is excluded for safety.")
             .setView(editor)
             .setPositiveButton("Copy backup") { _, _ ->
                 val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                cm.setPrimaryClip(android.content.ClipData.newPlainText("Vencord Mobile backup",editor.text.toString()))
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("NEXORA backup",editor.text.toString()))
                 Toast.makeText(this,"Backup copied",Toast.LENGTH_SHORT).show()
             }
             .setNeutralButton("Restore") { _, _ ->
                 try {
                     val root=org.json.JSONObject(editor.text.toString())
-                    require(root.optString("format")=="vencord-mobile-settings") { "This is not a Vencord Mobile backup" }
+                    require(root.optString("format") in setOf("nexora-settings", "vencord-mobile-settings")) { "This is not a supported NEXORA backup" }
                     val values=root.getJSONObject("preferences")
                     val out=prefs.edit()
                     val keys=values.keys()
                     while(keys.hasNext()) {
-                        val key=keys.next(); val item=values.getJSONObject(key); val value=item.optString("value");
+                        val key=keys.next(); if (key == "custom_plugins") continue
+                        val item=values.getJSONObject(key); val value=item.optString("value");
                         when(item.optString("type")) {
                             "boolean" -> out.putBoolean(key,value.toBoolean())
                             "int" -> out.putInt(key,value.toInt())
