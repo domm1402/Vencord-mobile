@@ -313,6 +313,7 @@ class MainActivity : Activity() {
                 }
                 "Extensions" -> {
                     tile("Plugin manager","Install and manage extensions") { PluginManager(this) { feature -> when(feature) { 0 -> CustomPlugins(this) { web.reload() }.open(); 1 -> showThemes(); 2 -> editCss(); 3 -> showChatTools(); 4 -> cosmeticLab(); 5 -> showRPC(); 6 -> BuiltinPlugins(this) { web.reload() }.open() } }.open() }
+                    tile("Plugin runtime diagnostics","See enabled scripts, execution status and errors; disable all safely") { showPluginRuntimeHealth() }
                     tile("Feature library","Toggle interface enhancements") { showFeatureLibrary() }
                     tile("Chat tools","Reactions, translation and message helpers") { showChatTools() }
                     tile("About compatibility","Understand what works and what is experimental") { showNexoraAbout() }
@@ -1729,6 +1730,34 @@ class MainActivity : Activity() {
                     null
                 )
             }
+        }
+    }
+
+    private fun showPluginRuntimeHealth() {
+        val source = prefs.getString("custom_plugins", "[]") ?: "[]"
+        val plugins = try { org.json.JSONArray(source) } catch (_: Exception) { org.json.JSONArray() }
+        val enabled = (0 until plugins.length()).mapNotNull { plugins.optJSONObject(it) }.filter { it.optBoolean("enabled", false) }
+        val js = "(function(){var s=window.__NEXORA_PLUGIN_STATUS__||{};return JSON.stringify(s)})()"
+        web.evaluateJavascript(js) { raw ->
+            val status = try { org.json.JSONObject(org.json.JSONTokener(raw).nextValue() as String) } catch (_: Exception) { org.json.JSONObject() }
+            var ok=0;var errors=0;var pending=0
+            val lines=StringBuilder()
+            for(i in 0 until status.length()){
+                val key=status.keys().asSequence().toList()[i]
+                val item=status.optJSONObject(key) ?: continue
+                when(item.optString("state")){"ok"->ok++;"error"->errors++;else->pending++}
+                lines.append(item.optString("state","unknown").uppercase()).append(" • ").append(item.optString("name","Plugin")).append("\n")
+                item.optString("error").takeIf{it.isNotBlank()}?.let{lines.append(it.take(500)).append("\n\n")}
+            }
+            val summary="Enabled plugins: ${enabled.size}\nExecuted this session: ${status.length()}\nSuccessful: ${ok} • Errors: ${errors} • Pending: ${pending}\n\n"+
+                (if(lines.isEmpty()) "No plugin execution records yet. Reload Discord to run enabled plugins." else lines.toString())
+            AlertDialog.Builder(this).setTitle("Plugin runtime diagnostics").setMessage(summary)
+                .setPositiveButton("Reload") { _, _ -> web.reload() }
+                .setNeutralButton("Disable all") { _, _ ->
+                    for(i in 0 until plugins.length()) plugins.optJSONObject(i)?.put("enabled",false)
+                    prefs.edit().putString("custom_plugins",plugins.toString()).apply()
+                    web.reload()
+                }.setNegativeButton("Close",null).show()
         }
     }
 
