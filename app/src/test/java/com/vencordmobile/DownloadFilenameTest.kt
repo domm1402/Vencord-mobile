@@ -18,7 +18,11 @@ class DownloadFilenameTest {
         assertEquals("download", safeDownloadFileName(""))
     }
 
-    @Test fun removesBidiAndDeleteControls() {\n        assertEquals("ab_cd.txt", safeDownloadFileName("ab\\u202ecd\\u007f.txt"))\n    }\n\n    @Test fun boundsFilenameLength() {
+    @Test fun removesBidiAndDeleteControls() {
+        assertEquals("abcd.txt", safeDownloadFileName("ab\u202ecd\u007f.txt"))
+    }
+
+    @Test fun boundsFilenameLength() {
         assertEquals(180, safeDownloadFileName("a".repeat(300)).length)
     }
 }
