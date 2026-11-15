@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.15
+
+- Restore and wire 15 accessibility toggles plus add 10 embed/channel controls: line-height, keyboard focus, larger touch targets, reaction filtering, role chips, embed metadata, attachment names and channel labels.
+- Bump Android version code to 19 and version name to 2.15.
+
+
 ## 2.14
 
 - Add five one-tap feature profiles for recommended cleanup, focus, accessibility, minimal UI and developer workspace.
