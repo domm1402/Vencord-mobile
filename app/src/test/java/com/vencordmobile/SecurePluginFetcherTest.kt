@@ -36,7 +36,9 @@ class SecurePluginFetcherTest {
             "https://127.1/plugin.js",
             "https://[::1]/plugin.js",
             "https://2130706433/plugin.js",
-            "https://0x7f000001/plugin.js",\n            "https://0x7f.0.0.1/plugin.js",\n            "https://0x7f.0x0.0x0.0x1/plugin.js"
+            "https://0x7f000001/plugin.js",
+            "https://0x7f.0.0.1/plugin.js",
+            "https://0x7f.0x0.0x0.0x1/plugin.js"
         ).forEach { source ->
             assertThrows(IllegalArgumentException::class.java) {
                 SecurePluginFetcher.parseHttpsUrl(source)
