@@ -57,7 +57,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                         val code=downloaded.text
                         if(code.isBlank()) throw Exception("The plugin file is empty")
                         val name=raw.substringAfterLast('/').substringBefore('?').removeSuffix(".js").ifBlank{"Imported plugin"}
-                        activity.runOnUiThread {
+                        postToUi {
                             val existing=(0 until a.length()).any { index ->
                                 a.optJSONObject(index)?.optString("source","") == entered
                             }
@@ -75,7 +75,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                             }
                         }
                     } catch(e:Exception) {
-                        activity.runOnUiThread { AlertDialog.Builder(activity).setTitle("Plugin download failed").setMessage(e.message ?: "Could not download this URL. Use a direct public .js file link.").setPositiveButton("OK",null).show() }
+                        postToUi { AlertDialog.Builder(activity).setTitle("Plugin download failed").setMessage(e.message ?: "Could not download this URL. Use a direct public .js file link.").setPositiveButton("OK",null).show() }
                     }
                 }
             }.setNegativeButton("Cancel",null).show()
