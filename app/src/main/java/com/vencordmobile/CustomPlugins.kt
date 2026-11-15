@@ -60,7 +60,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                 Toast.makeText(activity,"Downloading plugin…",Toast.LENGTH_SHORT).show()
                 thread {
                     try {
-                        val raw=toRawUrl(entered)
+                        val raw=PluginSourceUrl.toRawUrl(entered)
                         val downloaded=SecurePluginFetcher.fetch(raw,500000,"NEXORA-PluginLoader")
                         val code=downloaded.text
                         if(code.isBlank()) throw Exception("The plugin file is empty")
@@ -88,16 +88,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                 }
             }.setNegativeButton("Cancel",null).show()
     }
-    private fun toRawUrl(input:String):String {
-        require(input.startsWith("https://")) { "Only HTTPS URLs are allowed" }
-        if(input.contains("github.com/") && input.contains("/blob/")) {
-            val parts=input.removePrefix("https://github.com/").split("/")
-            require(parts.size>=5) { "Use a GitHub link to a specific .js file" }
-            return "https://raw.githubusercontent.com/${parts[0]}/${parts[1]}/${parts[3]}/"+parts.drop(4).joinToString("/")
-        }
-        require(input.contains("raw.githubusercontent.com/") || input.endsWith(".js")) { "Use a direct .js URL or GitHub file link" }
-        return input
-    }
+
     private fun manage(a: JSONArray, index: Int) {
         val plugin = a.optJSONObject(index) ?: return
         val enabled = plugin.optBoolean("enabled", false)
