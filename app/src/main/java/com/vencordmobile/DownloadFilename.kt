@@ -8,7 +8,8 @@ internal fun safeDownloadFileName(suggested: String): String {
         Character.getType(it).toInt() == Character.FORMAT.toInt() ||
             it in '\u202a'..'\u202e' || it in '\u2066'..'\u2069'
     }
-    val cleaned = visible.replace(Regex("""[\\x00-\\x1f\\x7f-\\x9f<>:"|?*]"""), "_")
-        .trim().trimEnd().trim('.').take(180)
+    val cleaned = visible.filterNot { ch ->
+        ch.code in 0..31 || ch.code in 127..159 || ch in "<>:\"|?*"
+    }.trim().trimEnd().trim('.').take(180)
     return cleaned.ifBlank { "download" }
 }
