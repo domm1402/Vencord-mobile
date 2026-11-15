@@ -17,7 +17,7 @@ NEXORA 2.25 adds plugin runtime diagnostics (success/error state, stack traces a
 - Twenty built-in themes, custom CSS with secure remote CSS import, compact messages, avatar controls, rounded message cards, and a feature library with 38 local chat/layout toggles.
 - Plugin runtime diagnostics showing execution states and errors, with reload and disable-all recovery controls.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
-- JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links, with bounded downloads, strict HTTPS URL validation, redirect protection and duplicate-install checks.
+- JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links, with bounded downloads, strict HTTPS URL validation, redirect protection, duplicate-install checks and review-before-update for source-linked plugins.
 - JSON plugin repository browser with the same secure download handling.
 - Quick reaction emoji copy palette, selected-text translation, and a Discord Message Studio with formatting shortcuts.
 - Snippet Vault for reusable replies and templates, saved locally on-device.
