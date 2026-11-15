@@ -5,6 +5,27 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class PluginSourceUrlTest {
+    @Test fun rejectsNonHttpsAndMalformedGitHubBlobPaths() {
+        listOf("http://github.com/acme/plugin/blob/main/plugin.js",
+            "https://github.com/acme/blob/main/plugin.js",
+            "https://github.com/acme/plugin/blob/main/").forEach { url ->
+            assertThrows(IllegalArgumentException::class.java) { PluginSourceUrl.toRawUrl(url) }
+        }
+    }
+
+    @Test fun keepsRawGithubFilesAndOrdinaryHttpsJsUrls() {
+        val raw = "https://raw.githubusercontent.com/acme/plugin/main/plugin.js"
+        assertEquals(raw, PluginSourceUrl.toRawUrl(raw))
+        val cdn = "https://cdn.example.org/plugins/a.js"
+        assertEquals(cdn, PluginSourceUrl.toRawUrl(cdn))
+    }
+
+    @Test fun rejectsGithubLookalikeHostWithBlobPathWhenNotJs() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PluginSourceUrl.toRawUrl("https://github.com.evil.example/acme/plugin/blob/main/readme.md")
+        }
+    }
+
     @Test fun convertsExactGithubBlobHostToRawUrl() {
         assertEquals(
             "https://raw.githubusercontent.com/acme/plugin/main/src/plugin.js",
