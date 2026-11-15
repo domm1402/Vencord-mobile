@@ -686,6 +686,14 @@ class MainActivity : Activity() {
                 Toast.makeText(this@MainActivity, "CSS saved and applied", Toast.LENGTH_SHORT).show()
             }
         }
+        @android.webkit.JavascriptInterface
+        fun copy(value: String) {
+            runOnUiThread {
+                val cm=getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("NEXORA CSS theme",value))
+                Toast.makeText(this@MainActivity,"CSS copied to clipboard",Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun editCss() {
@@ -716,6 +724,7 @@ class MainActivity : Activity() {
             actions.addView(Button(this).apply { text=label; isAllCaps=false; setOnClickListener { click() } },LinearLayout.LayoutParams(0,dp(48),1f))
         }
         action("Save & apply") { editor.evaluateJavascript("save()",null) }
+        action("Copy CSS") { editor.evaluateJavascript("NexoraEditor.copy(editor.getValue())",null) }
         action("Clear") { editor.evaluateJavascript("editor.setValue('',-1)",null) }
         action("Import URL") { importCssUrl(editor) }
         panel.addView(actions)
