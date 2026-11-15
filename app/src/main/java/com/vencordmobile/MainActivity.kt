@@ -1108,11 +1108,11 @@ class MainActivity : Activity() {
             }
             .setNeutralButton("Profiles") { _, _ ->
                 val profiles = linkedMapOf(
-                    "Recommended clean-up" to setOf("compact","cards","hide_server_boost","hide_discover","hide_shop","hide_gift","hide_gif","hide_stickers","reduce_motion"),
-                    "Focus mode" to setOf("focus_mode","hide_banners","hide_activity","hide_members","hide_typing","hide_thread_suggestions","hide_channel_guides","hide_unread_pills"),
-                    "Accessibility" to setOf("readable_line_height","larger_click_targets","show_focus_outline","high_contrast","underline_links","highlight_mentions"),
-                    "Minimal interface" to setOf("hide_attachments","hide_embeds","hide_reactions","hide_timestamps","hide_profile_banners","hide_animated_emoji","hide_link_previews","hide_poll_bars","hide_call_controls"),
-                    "Developer workspace" to setOf("wide_chat","line_wrap_code","hide_inline_code","force_left_align","larger_channel_names","sticky_composer")
+                    "Recommended clean-up" to setOf("compact","cards","hide_server_boost","hide_discover","hide_shop","hide_gift","hide_gif","hide_stickers","reduce_motion","hide_invites","hide_store_buttons","hide_boost_badges"),
+                    "Focus mode" to setOf("focus_mode","hide_banners","hide_activity","hide_members","hide_typing","hide_thread_suggestions","hide_channel_guides","hide_unread_pills","hide_scheduled_events","hide_call_invites"),
+                    "Accessibility" to setOf("readable_line_height","larger_click_targets","show_focus_outline","high_contrast","underline_links","highlight_mentions","readable_line_height","larger_click_targets","show_focus_outline"),
+                    "Minimal interface" to setOf("hide_attachments","hide_embeds","hide_reactions","hide_timestamps","hide_profile_banners","hide_animated_emoji","hide_link_previews","hide_poll_bars","hide_call_controls","hide_channel_icons","hide_channel_categories","hide_embed_author","hide_embed_footer"),
+                    "Developer workspace" to setOf("wide_chat","line_wrap_code","hide_inline_code","force_left_align","larger_channel_names","sticky_composer","compact_embeds","hide_inline_code","force_left_align")
                 )
                 AlertDialog.Builder(this).setTitle("Feature profiles").setItems(profiles.keys.toTypedArray()) { _, index ->
                     val selected = profiles.values.elementAt(index)
