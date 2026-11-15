@@ -1722,9 +1722,10 @@ class MainActivity : Activity() {
                 val key = org.json.JSONObject.quote(identity)
                 web.evaluateJavascript(
                     "(function(){var r=window.__NEXORA_PLUGIN_RUNS__||(window.__NEXORA_PLUGIN_RUNS__={});" +
-                        "var k=" + key + ";if(r[k])return;r[k]=true;" +
-                        "try{(function(){" + code + "}).call(window)}catch(e){delete r[k];" +
-                        "console.error('NEXORA plugin error ('+k+')',e)}})();",
+                        "var st=window.__NEXORA_PLUGIN_STATUS__||(window.__NEXORA_PLUGIN_STATUS__={});" +
+                        "var k=" + key + ";if(r[k])return;r[k]=true;st[k]={name:" + org.json.JSONObject.quote(p.optString("name","Unnamed")) + ",state:'running',time:Date.now()};" +
+                        "try{(function(){" + code + "}).call(window);st[k].state='ok';}" +
+                        "catch(e){delete r[k];st[k].state='error';st[k].error=String(e&&e.stack||e);console.error('NEXORA plugin error ('+k+')',e)}})();",
                     null
                 )
             }
