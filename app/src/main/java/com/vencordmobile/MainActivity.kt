@@ -682,7 +682,7 @@ class MainActivity : Activity() {
     }
 
     private fun editCss() {
-        val initial = android.util.Base64.encodeToString(prefs.getString("css","").toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
+        val initial = android.util.Base64.encodeToString(prefs.getString("css","").orEmpty().toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
         val editor = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.allowFileAccess = true // isolated editor; Discord WebView stays file-locked
