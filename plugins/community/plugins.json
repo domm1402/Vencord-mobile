@@ -1,0 +1,127 @@
+{
+  "name": "NEXORA Community Starter Pack",
+  "version": 1,
+  "description": "Small local UI enhancements. Review every plugin before installing.",
+  "plugins": [
+    {
+      "name": "NEXORA • Reduce motion",
+      "description": "Accessibility: Disable nonessential Discord animations and transitions.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/quiet-animations.js"
+    },
+    {
+      "name": "NEXORA • High contrast",
+      "description": "Accessibility: Boost contrast for text and interactive controls.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/high-contrast.js"
+    },
+    {
+      "name": "NEXORA • Readable typography",
+      "description": "Accessibility: Use a clean system font and improve line spacing.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/readable-font.js"
+    },
+    {
+      "name": "NEXORA • Wide chat",
+      "description": "Layout: Use more horizontal space for messages.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/wide-chat.js"
+    },
+    {
+      "name": "NEXORA • Compact messages",
+      "description": "Layout: Reduce vertical gaps between messages.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/compact-messages.js"
+    },
+    {
+      "name": "NEXORA • Hide message avatars",
+      "description": "Layout: Hide avatars to create a compact text-first chat.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-avatar.js"
+    },
+    {
+      "name": "NEXORA • Square corners",
+      "description": "Appearance: Reduce rounded corners across common cards and buttons.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/square-corners.js"
+    },
+    {
+      "name": "NEXORA • Underline links",
+      "description": "Readability: Always underline links in chat for clarity.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/underline-links.js"
+    },
+    {
+      "name": "NEXORA • Wrap code blocks",
+      "description": "Readability: Prevent long code lines from overflowing horizontally.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/code-wrap.js"
+    },
+    {
+      "name": "NEXORA • Reveal spoilers",
+      "description": "Convenience: Show spoiler contents inline (use with care in public channels).",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/spoiler-reveal.js"
+    },
+    {
+      "name": "NEXORA • Dim avatars",
+      "description": "Focus: Tone down avatar prominence.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/dim-avatars.js"
+    },
+    {
+      "name": "NEXORA • Hide typing indicators",
+      "description": "Focus: Hide typing indicators to reduce visual noise.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-typing.js"
+    },
+    {
+      "name": "NEXORA • Hide activity cards",
+      "description": "Focus: Hide activity and game status panels in member lists.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-activity.js"
+    },
+    {
+      "name": "NEXORA • Message separators",
+      "description": "Layout: Add subtle separators between messages.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/message-borders.js"
+    },
+    {
+      "name": "NEXORA • Larger emoji",
+      "description": "Appearance: Increase standalone emoji size in chat.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/bigger-emoji.js"
+    },
+    {
+      "name": "NEXORA • Keyboard focus outlines",
+      "description": "Accessibility: Make keyboard focus easier to see.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/focus-outline.js"
+    },
+    {
+      "name": "NEXORA • Hide profile decorations",
+      "description": "Minimal: Hide avatar decorations locally.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-decorations.js"
+    },
+    {
+      "name": "NEXORA • Hide status dots",
+      "description": "Minimal: Remove online status dots from avatars.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-status-dots.js"
+    },
+    {
+      "name": "NEXORA • Transparent panels",
+      "description": "Appearance: Reduce solid panel backgrounds for a lighter interface.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/transparent-panels.js"
+    },
+    {
+      "name": "NEXORA • Sticky message composer",
+      "description": "Layout: Keep the message composer visible while scrolling.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/sticky-composer.js"
+    },
+    {
+      "name": "NEXORA • Hide channel topic",
+      "description": "Minimal: Hide channel topic banners.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-channel-topic.js"
+    },
+    {
+      "name": "NEXORA • Hide promotional upsells",
+      "description": "Focus: Hide common Nitro upsell banners locally.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/hide-nitro-upsells.js"
+    },
+    {
+      "name": "NEXORA • Larger click targets",
+      "description": "Accessibility: Increase hit areas for common buttons.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/large-click-targets.js"
+    },
+    {
+      "name": "NEXORA • Visible scrollbars",
+      "description": "Accessibility: Make scrollbars easier to spot.",
+      "url": "https://raw.githubusercontent.com/tiktoknotificationtroll-wq/Vencord-mobile/main/plugins/community/scrollbar-visible.js"
+    }
+  ]
+}
