@@ -16,7 +16,7 @@ class PluginStoragePolicyTest {
 
     @Test fun capsPluginCount() {
         val plugins = JSONArray()
-        repeat(PluginStoragePolicy.MAX_PLUGINS + 1) { plugins.put(JSONObject().put("code","")) }
+        repeat(PluginStoragePolicy.MAX_PLUGINS + 1) { plugins.put(JSONObject().put("code","console.log(1)")) }
         assertEquals("You can store up to 50 plugins", PluginStoragePolicy.validate(plugins))
     }
 
@@ -28,7 +28,20 @@ class PluginStoragePolicyTest {
         assertEquals("Combined plugin code exceeds 2 MB", PluginStoragePolicy.validate(plugins))
     }
 
-    @Test fun rejectsMalformedEntries() {
+    @Test fun rejectsMalformedEntriesAndNonStringCode() {
         assertEquals("Plugin entry 0 is invalid", PluginStoragePolicy.validate(JSONArray().put("not an object")))
+        assertEquals("Plugin entry 0 has invalid code", PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", 123))))
+        assertEquals("Plugin entry 0 has invalid code", PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", JSONObject()))))
+    }
+
+    @Test fun rejectsMissingAndEmptyPluginSource() {
+        assertEquals("Plugin entry 0 has invalid code", PluginStoragePolicy.validate(JSONArray().put(JSONObject())))
+        assertEquals("Plugin entry 0 has empty code", PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", "  \\n"))))
+    }
+
+    @Test fun countsUtf8BytesRatherThanCharacters() {
+        val code = "é".repeat(250_001) // 500,002 UTF-8 bytes
+        assertEquals("A plugin exceeds the 500 KB limit",
+            PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code", code))))
     }
 }
