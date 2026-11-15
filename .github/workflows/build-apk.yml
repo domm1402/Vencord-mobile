@@ -3,9 +3,15 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+concurrency:
+  group: nexora-android-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -19,9 +25,15 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@12.15.0 --activate
-      - name: Build official Vencord web client bundle
+      - name: Build pinned official Vencord web client bundle
+        env:
+          VENCORD_COMMIT: d07030c0968e31e41caa0c35fda0ef8ae63a079e
         run: |
-          git clone --depth 1 https://github.com/Vendicated/Vencord.git vencord-src
+          git init vencord-src
+          git -C vencord-src remote add origin https://github.com/Vendicated/Vencord.git
+          git -C vencord-src fetch --depth 1 origin "$VENCORD_COMMIT"
+          git -C vencord-src checkout --detach FETCH_HEAD
+          echo "Building Vencord commit: $(git -C vencord-src rev-parse HEAD)"
           cd vencord-src
           pnpm install --frozen-lockfile
           pnpm buildWeb --standalone --skip-extension
@@ -35,6 +47,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Run security unit tests
+        run: gradle testDebugUnitTest
       - name: Build debug APK
         run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
