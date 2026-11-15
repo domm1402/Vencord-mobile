@@ -7,6 +7,21 @@ import java.net.URL
 
 class SecurePluginFetcherTest {
     @Test
+    fun decodesUtf8WithoutChangingValidCode() {
+        assertEquals("const title = '雪';", SecurePluginFetcher.decodeUtf8("const title = '雪';".toByteArray(Charsets.UTF_8)))
+    }
+
+    @Test
+    fun rejectsMalformedOrTruncatedUtf8() {
+        listOf(byteArrayOf(0xC3.toByte(), 0x28), byteArrayOf(0xE2.toByte(), 0x82.toByte()))
+            .forEach { bytes ->
+                assertThrows(java.nio.charset.CharacterCodingException::class.java) {
+                    SecurePluginFetcher.decodeUtf8(bytes)
+                }
+            }
+    }
+
+    @Test
     fun acceptsHttpsPluginSources() {
         val parsed = SecurePluginFetcher.parseHttpsUrl("https://example.com/plugins/example.js")
         assertEquals("https", parsed.protocol)
