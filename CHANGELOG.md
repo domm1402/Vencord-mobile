@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11
+
+- Add 12 more focus/layout controls: promotional banners, channel topics, unread pills, online member rows, server labels, blur, transparency, focus mode, contrast, sticky composer, thread actions and animated backgrounds.
+- Bump Android version code to 15 and version name to 2.11.
+
+
 ## 2.10
 
 - Add 12 advanced feature-library switches with CSS implementations for stage/event panels, status dots, activity cards, message dividers, inline code, spoilers, stickers, mentions, links, corners and hover effects.
