@@ -1419,19 +1419,52 @@ class MainActivity : Activity() {
                     require(root.optString("format") in setOf("nexora-settings", "vencord-mobile-settings")) { "This is not a supported NEXORA backup" }
                     val values=root.getJSONObject("preferences")
                     val out=prefs.edit()
+                    var skipped = 0
+                    val booleanKeys = setOf(
+                        "desktop_mode", "profile_overlay", "reader_mode", "compact", "upsells",
+                        "noavatars", "cards", "bigtext", "compact_channels", "hide_members",
+                        "hide_activity", "hide_embeds", "hide_attachments", "reduce_motion",
+                        "hide_sticker_buttons"
+                    )
+                    val integerKeys = setOf("theme", "font_choice", "rpc_type")
                     val keys=values.keys()
                     while(keys.hasNext()) {
-                        val key=keys.next(); if (key == "custom_plugins") continue
-                        val item=values.getJSONObject(key); val value=item.optString("value");
-                        when(item.optString("type")) {
-                            "boolean" -> out.putBoolean(key,value.toBoolean())
-                            "int" -> out.putInt(key,value.toInt())
-                            "long" -> out.putLong(key,value.toLong())
-                            "float" -> out.putFloat(key,value.toFloat())
-                            else -> out.putString(key,value)
+                        val key=keys.next()
+                        // Executable plugins are never imported. Ignore unknown preference names
+                        // so crafted backups cannot create unexpected SharedPreferences types.
+                        if (key == "custom_plugins") continue
+                        val allowed = key in booleanKeys || key in integerKeys ||
+                            key in setOf("custom_accent", "css", "snippet_vault", "message_studio_draft", "bookmarks", "profile_badges") ||
+                            key.matches(Regex("feature_[a-z_]+")) || key.matches(Regex("rpc_[a-z0-9_]+"))
+                        if (!allowed) { skipped++; continue }
+                        val item=values.optJSONObject(key)
+                        if (item == null) { skipped++; continue }
+                        val value=item.optString("value", "")
+                        val declared=item.optString("type", "")
+                        val expected=when {
+                            key in booleanKeys || key.startsWith("feature_") || key == "rpc_timestamps_enabled" -> "boolean"
+                            key in integerKeys -> "int"
+                            else -> "string"
+                        }
+                        if (declared != expected) { skipped++; continue }
+                        when(expected) {
+                            "boolean" -> {
+                                if (value != "true" && value != "false") { skipped++; continue }
+                                out.putBoolean(key, value == "true")
+                            }
+                            "int" -> {
+                                val parsed=value.toIntOrNull()
+                                if (parsed == null || (key == "theme" && parsed !in 0..10) ||
+                                    (key == "font_choice" && parsed !in 0..5) ||
+                                    (key == "rpc_type" && parsed !in 0..5)) { skipped++; continue }
+                                out.putInt(key, parsed)
+                            }
+                            else -> out.putString(key, value.take(100000))
                         }
                     }
-                    out.apply(); applyCustomizations(); Toast.makeText(this,"Settings restored",Toast.LENGTH_LONG).show()
+                    out.apply()
+                    applyCustomizations()
+                    Toast.makeText(this, if (skipped == 0) "Settings restored" else "Settings restored; skipped $skipped invalid entries", Toast.LENGTH_LONG).show()
                 } catch(e:Exception) { AlertDialog.Builder(this).setTitle("Restore failed").setMessage(e.message ?: "Invalid backup").setPositiveButton("OK",null).show() }
             }.setNegativeButton("Close",null).show()
     }
