@@ -6,16 +6,16 @@ A redesigned Android Discord client shell with a full-screen NEXORA control deck
 
 ## NEXORA 2.0
 
-NEXORA 2.1 adds native Android file selection for Discord uploads and attachment flows. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
+NEXORA 2.1 adds native Android file selection for Discord uploads and attachment flows, safer download handling, secure extension fetching and safer settings restore. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
 
 ## Features
 
-- Discord web app in an Android WebView, with swipe refresh, Android file downloads and Android file-picker support for uploads/attachments.
+- Discord web app in an Android WebView, with swipe refresh, Android file downloads and Android file-picker support for uploads/attachments. Third-party links open outside the signed-in Discord WebView.
 - Modern dark Control Centre, mobile/desktop page mode, navigation and find-on-page.
 - Eleven built-in themes, custom CSS, compact messages, avatar controls, rounded message cards, and a feature library with 21 local chat/layout toggles.
 - Feature library controls for embeds, attachments, reactions, blocked-message placeholders, typing indicators, GIF/sticker/gift buttons, shop/discovery/boost promotions, profile banners, motion reduction and more.
-- JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links.
-- JSON plugin repository browser.
+- JavaScript plugin installer for direct HTTPS `.js` links and GitHub file links, with bounded downloads, HTTPS-only redirect handling and duplicate-install checks.
+- JSON plugin repository browser with the same secure download handling.
 - Quick reaction emoji copy palette, selected-text translation, and a Discord Message Studio with formatting shortcuts.
 - Snippet Vault for reusable replies and templates, saved locally on-device.
 - Searchable bookmarks, Discord quick navigation, reader mode and adjustable text zoom.
@@ -46,6 +46,7 @@ Plugin JavaScript executes in the signed-in Discord page and can access page dat
 
 ## Important limitations
 
+- Settings backup/restore excludes executable plugin code so importing a settings file cannot silently install scripts. Existing installed plugins are left untouched during restore.
 - Local cosmetic previews do not grant genuine Discord badges, Nitro or account entitlements.
 - Rich Presence publishing is experimental and unverified. The editor can save and preview activity data, but the internal Discord dispatcher approach is not a supported public API and may not work across Discord builds. Do not assume an activity has published unless it appears in Discord itself.
 - Discord's interface changes frequently; custom CSS selectors and plugins may need updates.
