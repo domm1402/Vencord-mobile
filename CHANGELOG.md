@@ -1,3 +1,6 @@
+## 2.22 — Media toolkit
+- Added HTTPS image/video URL opening, text URL extraction, and Discord CDN attachment template copying.
+
 ## 2.21 — Offline Code Lab
 - Added bundled Ace editor in the developer workspace with 12 syntax modes (JavaScript, TypeScript, JSON, HTML, CSS, Python, Kotlin, Java, Markdown, SQL, XML and Bash).
 - Local copy/save/load draft actions; editor is offline and drafts remain on-device.
