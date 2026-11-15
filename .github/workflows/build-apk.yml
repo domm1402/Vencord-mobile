@@ -45,7 +45,7 @@ jobs:
         run: |
           npm pack ace-builds@1.43.3
           mkdir -p app/src/main/assets/ace
-          tar -xzf ace-builds-1.43.3.tgz --strip-components=2 -C app/src/main/assets/ace package/src-min-noconflict
+          tar -xzf ace-builds-1.43.3.tgz --strip-components=1 -C app/src/main/assets/ace package/src-min-noconflict
           rm ace-builds-1.43.3.tgz
       - name: Bundle full Unicode Noto CJK font for multilingual chat
         run: |
