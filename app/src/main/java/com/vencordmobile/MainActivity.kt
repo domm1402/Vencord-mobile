@@ -185,6 +185,7 @@ class MainActivity : Activity() {
             }
             elevation = dp(9).toFloat()
             setOnClickListener { showNexoraHub() }
+            setOnLongClickListener { showNavigationControls(); true }
         }
         val lp = FrameLayout.LayoutParams(dp(54), dp(54), Gravity.BOTTOM or Gravity.END)
         lp.setMargins(dp(16), dp(16), dp(18), dp(24))
