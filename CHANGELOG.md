@@ -1,3 +1,7 @@
+## 2.22 — Multilingual typography pack
+- Added a bundled Noto Sans CJK typeface covering Chinese, Japanese and Korean text offline, with a typography selector.
+- Font assets are served only through WebViewAssetLoader's app-assets origin, not general file access in Discord.
+
 ## 2.21 — Offline CSS workbench
 - Bundled the Ace editor into the APK and wired a syntax-highlighted CSS editor with local save/apply and clear actions.
 - The editor runs in a separate WebView; Discord's own WebView continues to deny local file access.
