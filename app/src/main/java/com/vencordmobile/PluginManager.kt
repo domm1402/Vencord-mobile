@@ -67,6 +67,7 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
                 try {
                     val code = SecurePluginFetcher.fetch(url,500000,"NEXORA-PluginManager").text
                     require(code.isNotBlank()) { "Plugin file is empty" }
+                    val finalUrl = SecurePluginFetcher.fetch(url,500000,"NEXORA-PluginManager").finalUrl
                     activity.runOnUiThread {
                         val all = try { JSONArray(prefs.getString("custom_plugins", "[]")) } catch (_: Exception) { JSONArray() }
                         val duplicate = (0 until all.length()).any { index ->
@@ -75,9 +76,14 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
                         if(duplicate) {
                             Toast.makeText(activity,"That plugin URL is already installed",Toast.LENGTH_LONG).show()
                         } else {
-                            all.put(JSONObject().put("name",name).put("source",url).put("code",code).put("enabled",true))
-                            prefs.edit().putString("custom_plugins",all.toString()).apply()
-                            Toast.makeText(activity,"Installed $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                            AlertDialog.Builder(activity).setTitle("Review plugin: " + name)
+                                .setMessage("Final source: " + finalUrl + "\nSize: " + code.toByteArray(Charsets.UTF_8).size + " bytes\n\nThis JavaScript runs inside your signed-in Discord page and may access account data. Install only if you trust the author.")
+                                .setPositiveButton("Install") { _, _ ->
+                                    all.put(JSONObject().put("name",name).put("source",url).put("code",code).put("enabled",true))
+                                    prefs.edit().putString("custom_plugins",all.toString()).apply()
+                                    Toast.makeText(activity,"Installed $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                                }
+                                .setNegativeButton("Cancel",null).show()
                         }
                     }
                 } catch (e: Exception) { activity.runOnUiThread { Toast.makeText(activity,"Install failed: ${e.message}",Toast.LENGTH_LONG).show() } }
