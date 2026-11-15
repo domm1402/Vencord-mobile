@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9
+
+- Expand emoji library from 8 to 17 categories, adding Discord palette favourites, weather, space, plants, sports, travel, music, celebration and flags.
+- Bump Android version code to 13 and version name to 2.9.
+
+
 ## 2.8
 
 - Expand the theme gallery from 11 to 20 colour palettes, including Nord, Dracula, Catppuccin, Cyberpunk, Solarized, and Matrix-inspired palettes.
