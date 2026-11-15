@@ -124,6 +124,13 @@ class SecurePluginFetcherTest {
     }
 
     @Test
+    fun acceptsUrlAtExactLengthLimit() {
+        val prefix = "https://example.com/"
+        val exact = prefix + "a".repeat(2048 - prefix.length)
+        assertEquals(2048, SecurePluginFetcher.parseHttpsUrl(exact).toString().length)
+    }
+
+    @Test
     fun rejectsOverlongPluginUrls() {
         val url = "https://example.com/" + "a".repeat(2048)
         assertThrows(IllegalArgumentException::class.java) {
