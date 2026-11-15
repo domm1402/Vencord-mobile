@@ -1331,7 +1331,16 @@ class MainActivity : Activity() {
             "Animals" to "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐸 🐵 🐧 🐦 🦄 🐝 🦋 🐢",
             "Food" to "🍕 🍔 🍟 🌭 🍿 🧂 🥓 🥚 🍳 🧇 🥞 🧀 🍗 🍖 🌮 🌯 🍜 🍣 🍩 🍪",
             "Objects" to "💎 💰 🎁 🎈 🎉 🎊 🏆 🥇 ⚽ 🎮 🎧 💻 📱 🔥 ⭐ 🌟 ✨ 💡 🚀",
-            "Symbols" to "✅ ❌ ⚠️ ❗ ❓ 💯 🔞 ♻️ ➡️ ⬅️ ⬆️ ⬇️ 🔥 💢 ♾️ ™️ ©️ ®️"
+            "Symbols" to "✅ ❌ ⚠️ ❗ ❓ 💯 🔞 ♻️ ➡️ ⬅️ ⬆️ ⬇️ 🔥 💢 ♾️ ™️ ©️ ®️",
+            "Discord classics" to "🟣 🔵 🟢 🔴 ⚫ ⚪ 🟡 🟠 🩷 💜 💙 💚 ❤️ 🤍 🖤",
+            "Weather" to "☀️ 🌤️ ⛅ 🌥️ ☁️ 🌦️ 🌧️ ⛈️ 🌩️ 🌨️ ❄️ 🌪️ 🌈 🌫️ 🌙 ⭐",
+            "Space" to "🌍 🌎 🌏 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌌 🪐 ☄️ 🚀 👽 🛸",
+            "Plants" to "🌱 🌿 🍀 ☘️ 🍃 🌵 🌴 🌳 🌲 🌾 🌻 🌼 🌷 🌹 🪷 🪴",
+            "Sports" to "⚽ 🏀 🏈 ⚾ 🎾 🏐 🏉 🥏 🎱 🏓 🏸 🥊 🥋 🏆 🏅 🎯",
+            "Travel" to "🚗 🚕 🚌 🚎 🚓 🚑 🚒 🚲 🛵 🏍️ 🚂 ✈️ 🚁 🚀 🚢 ⛵",
+            "Music" to "🎵 🎶 🎼 🎤 🎧 🎹 🥁 🎸 🎺 🎻 🪕 🎷 🎙️ 💿 📻",
+            "Celebration" to "🎉 🎊 🎈 🎁 🎂 🥳 🎆 🎇 🪅 🪩 🎀 🧨 🥂 🍾",
+            "Flags" to "🏳️ 🏴 🏁 🚩 🏳️‍🌈 🏳️‍⚧️ 🇬🇧 🇺🇸 🇯🇵 🇫🇷 🇩🇪 🇮🇳 🇧🇷 🇨🇦 🇦🇺 🇺🇦"
         )
         AlertDialog.Builder(this).setTitle("Emoji library")
             .setItems(groups.keys.toTypedArray()) { _, groupIndex ->
