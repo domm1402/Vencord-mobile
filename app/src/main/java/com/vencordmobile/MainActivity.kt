@@ -956,7 +956,12 @@ class MainActivity : Activity() {
                 "hide_embeds" to "Hide link embeds",
                 "hide_attachments" to "Hide image and video attachments",
                 "hide_blocked" to "Hide blocked-message placeholders",
-                "hide_reactions" to "Hide reaction rows"
+                "hide_reactions" to "Hide reaction rows",
+                "hide_system_messages" to "Hide join and boost system messages",
+                "hide_timestamps" to "Hide message timestamps",
+                "wide_chat" to "Use wider message content",
+                "line_wrap_code" to "Wrap long code blocks",
+                "hide_thread_suggestions" to "Hide thread suggestion panels"
             ),
             "Navigation & layout" to listOf(
                 "compact_channels" to "Compact channel list",
@@ -964,7 +969,10 @@ class MainActivity : Activity() {
                 "hide_activity" to "Hide activity panels",
                 "hide_server_boost" to "Hide server boost promotions",
                 "hide_discover" to "Hide discovery promotions",
-                "hide_shop" to "Hide shop entry points"
+                "hide_shop" to "Hide shop entry points",
+                "hide_channel_guides" to "Hide channel guide banners",
+                "hide_voice_status" to "Hide voice status panels",
+                "hide_sidebar_icons" to "Reduce sidebar icon clutter"
             ),
             "Distraction controls" to listOf(
                 "upsells" to "Hide Nitro promotions",
@@ -973,7 +981,11 @@ class MainActivity : Activity() {
                 "hide_stickers" to "Hide sticker buttons",
                 "hide_typing" to "Hide typing indicator",
                 "reduce_motion" to "Reduce animations",
-                "hide_profile_banners" to "Hide profile banners"
+                "hide_profile_banners" to "Hide profile banners",
+                "hide_animated_emoji" to "Reduce animated emoji",
+                "hide_link_previews" to "Hide link preview cards",
+                "hide_poll_bars" to "Hide poll result bars",
+                "hide_call_controls" to "Hide call control overlays"
             )
         )
         val all = groups.values.flatten()
@@ -1527,6 +1539,18 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("hide_attachments",false)) rules.append("[class*=attachmentContentContainer],[class*=imageContent],[class*=videoContainer]{display:none!important}")
         if(prefs.getBoolean("reduce_motion",false)) rules.append("*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}")
         if(prefs.getBoolean("hide_sticker_buttons",false)) rules.append("button[aria-label*=GIF],button[aria-label*=sticker],[class*=stickerButton],[class*=gifButton]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_system_messages",false)) rules.append("[class*=systemMessage]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_timestamps",false)) rules.append("[class*=timestamp],[class*=timeStamp]{display:none!important}")
+        if(prefs.getBoolean("feature_wide_chat",false)) rules.append("[class*=messageContent]{max-width:100%!important}")
+        if(prefs.getBoolean("feature_line_wrap_code",false)) rules.append("pre,code{white-space:pre-wrap!important;overflow-wrap:anywhere!important}")
+        if(prefs.getBoolean("feature_hide_thread_suggestions",false)) rules.append("[class*=threadSuggestion],[class*=threadSidebar]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_channel_guides",false)) rules.append("[class*=channelGuide],[class*=onboardingPrompt]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_voice_status",false)) rules.append("[class*=voiceUser],[class*=voiceStatus]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_sidebar_icons",false)) rules.append("[class*=sidebar] [class*=icon]{opacity:.45!important}")
+        if(prefs.getBoolean("feature_hide_animated_emoji",false)) rules.append("img[class*=emoji][src*=animated]{filter:grayscale(1)!important}")
+        if(prefs.getBoolean("feature_hide_link_previews",false)) rules.append("[class*=embedWrapper],[class*=linkPreview]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_poll_bars",false)) rules.append("[class*=pollResults],[class*=answerPercentage]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_call_controls",false)) rules.append("[class*=callContainer] [class*=control]{opacity:.25!important}")
         if(prefs.getBoolean("feature_compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("feature_cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
         if(prefs.getBoolean("feature_bigtext",false)) rules.append("[class*=messageContent]{font-size:16px!important;line-height:1.45!important}")
