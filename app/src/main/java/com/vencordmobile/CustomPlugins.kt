@@ -58,9 +58,14 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
                             if(existing) {
                                 Toast.makeText(activity,"That plugin URL is already installed",Toast.LENGTH_LONG).show()
                             } else {
-                                a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
-                                save(a)
-                                Toast.makeText(activity,"Installed: $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                                AlertDialog.Builder(activity).setTitle("Review plugin: " + name)
+                                    .setMessage("Final source: " + downloaded.finalUrl + "\nSize: " + code.toByteArray(Charsets.UTF_8).size + " bytes\n\nThis JavaScript will execute inside your signed-in Discord page and may access account data. Install only if you trust this source.")
+                                    .setPositiveButton("Install") { _, _ ->
+                                        a.put(JSONObject().put("name",name).put("source",entered).put("code",code).put("enabled",true))
+                                        save(a)
+                                        Toast.makeText(activity,"Installed: $name. Reload Discord to run it.",Toast.LENGTH_LONG).show()
+                                    }
+                                    .setNegativeButton("Cancel",null).show()
                             }
                         }
                     } catch(e:Exception) {
