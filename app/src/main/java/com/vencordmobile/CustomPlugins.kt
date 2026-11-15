@@ -31,14 +31,24 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     }
     fun open() {
         val a = load()
-        val names = Array(a.length() + 1) { i ->
-            if (i == 0) "＋ Add plugin manually" else {
-                val p=a.optJSONObject(i - 1)
-                (if(p?.optBoolean("enabled",false)==true) "✓ " else "○ ")+(p?.optString("name","Plugin") ?: "Plugin")
+        val names = Array(a.length() + 3) { i ->
+            when (i) {
+                0 -> "Export plugin backup (${a.length()})"
+                1 -> "Import plugin backup"
+                2 -> "＋ Add plugin manually"
+                else -> {
+                    val p=a.optJSONObject(i - 3)
+                    (if(p?.optBoolean("enabled",false)==true) "✓ " else "○ ")+(p?.optString("name","Plugin") ?: "Plugin")
+                }
             }
         }
-        AlertDialog.Builder(activity).setTitle("Plugins")
-            .setItems(names) { _, i -> if (i == 0) edit(a, -1) else manage(a, i - 1) }
+        AlertDialog.Builder(activity).setTitle("Plugins • ${a.length()} installed")
+            .setItems(names) { _, i -> when(i) {
+                0 -> exportBackup(a)
+                1 -> importBackup(a)
+                2 -> edit(a, -1)
+                else -> manage(a, i - 3)
+            } }
             .setPositiveButton("Install from URL") { _, _ -> installUrl(a) }
             .setNeutralButton("Disable all") { _, _ ->
                 for (index in 0 until a.length()) a.optJSONObject(index)?.put("enabled", false)
@@ -47,9 +57,44 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
             }
             .setNegativeButton("Security info") { _, _ ->
                 AlertDialog.Builder(activity).setTitle("Plugin security")
-                    .setMessage("Plugins execute JavaScript inside your logged-in Discord page and can access your account session/data. Only install sources you trust. This loader accepts direct JavaScript files or GitHub links to a .js file, not native Vencord/Revenge plugin packages.")
+                    .setMessage("Plugins execute JavaScript inside your logged-in Discord page and can access account session/data. Only install sources you trust. Direct JS/GitHub .js files work; desktop Vencord/Revenge packages do not run natively.")
                     .setPositiveButton("I understand", null).show()
             }.show()
+    }
+    private fun exportBackup(a: JSONArray) {
+        val json=JSONObject().put("format","NEXORA_PLUGIN_BACKUP_V1").put("plugins",a).toString(2)
+        val cm=activity.getSystemService(Activity.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("NEXORA plugin backup",json))
+        Toast.makeText(activity,"Backup copied to clipboard (${a.length()} plugins)",Toast.LENGTH_LONG).show()
+    }
+    private fun importBackup(a: JSONArray) {
+        val input=EditText(activity).apply { hint="Paste NEXORA plugin backup JSON"; minLines=8; gravity=Gravity.TOP; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS }
+        AlertDialog.Builder(activity).setTitle("Import plugin backup").setMessage("Paste exported JSON. Existing plugins remain; matching source/name entries are skipped.")
+            .setView(input).setPositiveButton("Validate & import") { _, _ ->
+                try {
+                    val root=JSONObject(input.text.toString())
+                    if(root.optString("format")!="NEXORA_PLUGIN_BACKUP_V1") throw Exception("Unknown backup format")
+                    val incoming=root.optJSONArray("plugins") ?: throw Exception("Missing plugins array")
+                    val merged=JSONArray()
+                    for(i in 0 until a.length()) merged.put(a.get(i))
+                    var added=0
+                    for(i in 0 until incoming.length()) {
+                        val p=incoming.optJSONObject(i) ?: continue
+                        val duplicate=(0 until merged.length()).any { j ->
+                            val q=merged.optJSONObject(j)
+                            q?.optString("source","")==p.optString("source","") && q?.optString("name","")==p.optString("name","")
+                        }
+                        if(!duplicate){merged.put(JSONObject(p.toString()));added++}
+                    }
+                    val problem=PluginStoragePolicy.validate(merged)
+                    if(problem!=null) throw Exception(problem)
+                    AlertDialog.Builder(activity).setTitle("Import ${added} plugins?").setMessage("Validated ${incoming.length()} entries. ${added} new plugins will be added. Imported JavaScript can access your Discord page/session.")
+                        .setPositiveButton("Import") { _, _ -> save(merged);Toast.makeText(activity,"Imported ${added} plugins",Toast.LENGTH_LONG).show() }
+                        .setNegativeButton("Cancel",null).show()
+                } catch(e:Exception) {
+                    AlertDialog.Builder(activity).setTitle("Import failed").setMessage(e.message ?: "Invalid JSON backup").setPositiveButton("OK",null).show()
+                }
+            }.setNegativeButton("Cancel",null).show()
     }
     private fun installUrl(a: JSONArray) {
         val urlBox=EditText(activity).apply { hint="GitHub .js URL or raw.githubusercontent.com URL"; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI }
