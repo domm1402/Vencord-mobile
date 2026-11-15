@@ -69,6 +69,12 @@ jobs:
           if-no-files-found: ignore
       - name: Build debug APK
         run: gradle assembleDebug
+      - name: Report APK byte size
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          SIZE=$(stat -c %s "$APK")
+          echo "NEXORA APK bytes: $SIZE"
+          echo "NEXORA APK MiB: $(awk "BEGIN {printf \"%.2f\", $SIZE/1048576}")"
       - uses: actions/upload-artifact@v4
         with:
           name: NEXORA-Android-APK
