@@ -6,7 +6,7 @@ A redesigned Android Discord client shell with a full-screen NEXORA control deck
 
 ## NEXORA 2.4
 
-NEXORA 2.2 adds duplicate-safe plugin execution per page, bounded manual plugin editing and main-page network error feedback. It also includes native Android file selection for Discord uploads and attachment flows, safer download handling, secure extension fetching, safer settings restore, plugin manifest bounds and WebView hardening. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
+NEXORA 2.2 added duplicate-safe plugin execution per page, bounded manual plugin editing, main-page network error feedback and WebView lifecycle handling. NEXORA 2.3 hardened backup restore and download filenames. NEXORA 2.4 bounds and validates marketplace manifests, limits saved repositories, and preserves the page-zoom preference in safe backups. The app also includes native Android file selection for Discord uploads and attachment flows, secure extension fetching and WebView hardening. NEXORA 2.0 introduced a full-screen, four-section control deck with Home, Appearance, Tools and Extensions. It has its own name, launcher icon, colour identity and redesigned navigation. It remains an independent Discord WebView client shell, not an official Discord client.
 
 ## Features
 
