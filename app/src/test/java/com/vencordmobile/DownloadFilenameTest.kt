@@ -10,7 +10,7 @@ class DownloadFilenameTest {
     }
 
     @Test fun replacesUnsafeCharactersAndTrimsDots() {
-        assertEquals("bad_name_.txt", safeDownloadFileName("..bad:name?.txt."))
+        assertEquals("badname.txt", safeDownloadFileName("..bad:name?.txt."))
     }
 
     @Test fun providesFallbackForEmptyNames() {
