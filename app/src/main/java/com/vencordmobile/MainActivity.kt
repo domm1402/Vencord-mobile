@@ -160,7 +160,9 @@ class MainActivity : Activity() {
             }
         }
         swipe = SwipeRefreshLayout(this).apply {
-            setOnRefreshListener { web.reload() }
+            // Prevent downward Discord gestures from accidentally reloading.
+            isEnabled = false
+            setOnRefreshListener { /* pull-to-refresh intentionally disabled */ }
             setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light)
             addView(web, FrameLayout.LayoutParams(-1, -1))
         }
@@ -279,6 +281,7 @@ class MainActivity : Activity() {
                     tile("Continue to Discord","Close this deck and return to your current server or DM") { }
                     tile("My profile studio","Personalise your local profile preview") { showProfileStudio() }
                     tile("Quick navigation","Jump to Discord settings, DMs and discovery") { showQuickNavigation() }
+                    tile("Navigation controls","Back, forward, home, scroll top/bottom and reload") { showNavigationControls() }
                     tile("Bookmarks","Open your saved pages") { showBookmarks() }
                     tile("What's inside Nexora","Themes, tools, plugins and customisation in one place") { showNexoraAbout() }
                 }
@@ -296,6 +299,7 @@ class MainActivity : Activity() {
                     tile("Developer toolbox","JSON, Base64, URLs and Discord ID tools") { showDeveloperToolbox() }
                     tile("Rich Presence","Configure and preview activity data") { showRPC() }
                     tile("Browser tools","Reader mode, zoom, find and reload") { showBrowserTools() }
+                    tile("Navigation controls","Back, forward, home, scroll top/bottom and reload") { showNavigationControls() }
                     tile("Backup & restore","Export your Nexora settings") { backup() }
                 }
                 "Extensions" -> {
@@ -341,6 +345,22 @@ class MainActivity : Activity() {
         dialog.window?.setLayout(-1,-1)
         dialog.window?.setStatusBarColor(Color.rgb(10,12,20))
         dialog.window?.setNavigationBarColor(Color.rgb(10,12,20))
+    }
+
+    private fun showNavigationControls() {
+        val actions = arrayOf("Back", "Forward", "Discord home", "Scroll to top", "Scroll to bottom", "Reload", "Stop loading", "Copy current URL")
+        AlertDialog.Builder(this).setTitle("Navigation controls").setItems(actions) { _, i ->
+            when (i) {
+                0 -> if (web.canGoBack()) web.goBack() else Toast.makeText(this, "No previous page", Toast.LENGTH_SHORT).show()
+                1 -> if (web.canGoForward()) web.goForward() else Toast.makeText(this, "No next page", Toast.LENGTH_SHORT).show()
+                2 -> web.loadUrl("https://discord.com/app")
+                3 -> web.evaluateJavascript("window.scrollTo({top:0,behavior:'smooth'})", null)
+                4 -> web.evaluateJavascript("window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'})", null)
+                5 -> web.reload()
+                6 -> web.stopLoading()
+                7 -> { val clip = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager; clip.setPrimaryClip(android.content.ClipData.newPlainText("NEXORA URL", web.url ?: "")); Toast.makeText(this, "URL copied", Toast.LENGTH_SHORT).show() }
+            }
+        }.show()
     }
 
     private fun showBrowserTools() {
