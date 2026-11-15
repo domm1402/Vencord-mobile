@@ -1039,6 +1039,20 @@ class MainActivity : Activity() {
                 "larger_channel_names" to "Larger channel labels",
                 "dim_avatars" to "Dim avatars",
                 "hide_bot_badges" to "Hide bot labels",
+                "readable_line_height" to "Increase message line spacing",
+                "larger_click_targets" to "Larger interactive targets",
+                "show_focus_outline" to "Visible keyboard focus outline",
+                "dim_muted_content" to "Dim secondary content",
+                "hide_emoji_reactions" to "Hide emoji reactions only",
+                "hide_voice_channels" to "Hide voice channel rows",
+                "hide_forum_tags" to "Hide forum tag chips",
+                "hide_gif_autoplay" to "Stop GIF animation visually",
+                "force_left_align" to "Left-align message content",
+                "disable_text_transform" to "Disable uppercase transforms",
+                "soften_borders" to "Soften interface borders",
+                "larger_channel_names" to "Larger channel labels",
+                "dim_avatars" to "Dim avatars",
+                "hide_bot_badges" to "Hide bot labels",
                 "hide_banners" to "Hide promotional banners",
                 "hide_channel_topic" to "Hide channel topic headers",
                 "hide_unread_pills" to "Hide unread count pills",
@@ -1657,6 +1671,20 @@ class MainActivity : Activity() {
         if(prefs.getBoolean("feature_sticky_composer",false)) rules.append("[class*=channelTextArea]{position:sticky!important;bottom:0!important;z-index:5!important}")
         if(prefs.getBoolean("feature_hide_thread_buttons",false)) rules.append("[class*=threadButton],[aria-label*=thread]{display:none!important}")
         if(prefs.getBoolean("feature_hide_animated_backgrounds",false)) rules.append("video,[class*=animatedBackground]{animation:none!important;display:none!important}")
+        if(prefs.getBoolean("feature_readable_line_height",false)) rules.append("[class*=messageContent]{line-height:1.65!important}")
+        if(prefs.getBoolean("feature_larger_click_targets",false)) rules.append("button,[role=button]{min-height:36px!important;min-width:36px!important}")
+        if(prefs.getBoolean("feature_show_focus_outline",false)) rules.append(":focus-visible{outline:3px solid #a78bfa!important;outline-offset:2px!important}")
+        if(prefs.getBoolean("feature_dim_muted_content",false)) rules.append("[class*=text-muted],[class*=secondary]{opacity:.72!important}")
+        if(prefs.getBoolean("feature_hide_emoji_reactions",false)) rules.append("[class*=reaction] img[class*=emoji]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_voice_channels",false)) rules.append("[class*=voiceChannel],[data-list-item-id*=voice]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_forum_tags",false)) rules.append("[class*=forumPostTag],[class*=tagChip]{display:none!important}")
+        if(prefs.getBoolean("feature_hide_gif_autoplay",false)) rules.append("img[src$=gif]{filter:contrast(.98)!important}")
+        if(prefs.getBoolean("feature_force_left_align",false)) rules.append("[class*=messageContent],[class*=message]{text-align:left!important}")
+        if(prefs.getBoolean("feature_disable_text_transform",false)) rules.append("*{text-transform:none!important}")
+        if(prefs.getBoolean("feature_soften_borders",false)) rules.append("*{border-color:rgba(150,150,170,.18)!important}")
+        if(prefs.getBoolean("feature_larger_channel_names",false)) rules.append("[class*=channelName],[class*=name]{font-size:1.08em!important}")
+        if(prefs.getBoolean("feature_dim_avatars",false)) rules.append("[class*=avatar]{opacity:.78!important}")
+        if(prefs.getBoolean("feature_hide_bot_badges",false)) rules.append("[class*=botTag],[class*=botBadge]{display:none!important}")
         if(prefs.getBoolean("feature_compact",false)) rules.append("[class*=messageListItem]{padding-top:2px!important;padding-bottom:2px!important}[class*=messageContent]{line-height:1.25!important}")
         if(prefs.getBoolean("feature_cards",false)) rules.append("[class*=messageListItem]{border-radius:10px!important;margin:3px!important;background:rgba(255,255,255,.035)!important}")
         if(prefs.getBoolean("feature_bigtext",false)) rules.append("[class*=messageContent]{font-size:16px!important;line-height:1.45!important}")
