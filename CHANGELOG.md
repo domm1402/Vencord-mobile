@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10
+
+- Add 12 advanced feature-library switches with CSS implementations for stage/event panels, status dots, activity cards, message dividers, inline code, spoilers, stickers, mentions, links, corners and hover effects.
+- Bump Android version code to 14 and version name to 2.10.
+
+
 ## 2.9
 
 - Expand emoji library from 8 to 17 categories, adding Discord palette favourites, weather, space, plants, sports, travel, music, celebration and flags.
