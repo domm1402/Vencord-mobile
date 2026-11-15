@@ -17,7 +17,7 @@ class CustomPlugins(private val activity: Activity, private val onChanged: (JSON
     private fun save(a: JSONArray) { prefs.edit().putString("custom_plugins", a.toString()).apply(); onChanged(a) }
     private fun postToUi(action: () -> Unit) {
         if (activity.isFinishing || activity.isDestroyed) return
-        postToUi {
+        activity.runOnUiThread {
             if (!activity.isFinishing && !activity.isDestroyed) action()
         }
     }
