@@ -51,7 +51,32 @@ class MainActivity : Activity() {
         web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
         installVencord()
         web.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) { swipe.isRefreshing = false; applyCustomizations(); applyProfileEnhancements(); runPlugins() }
+            override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                val uri = request?.url ?: return false
+                val scheme = uri.scheme?.lowercase(java.util.Locale.ROOT)
+                if (scheme != "https" && scheme != "http") return true
+                val host = uri.host?.lowercase(java.util.Locale.ROOT) ?: return true
+                val discordHost = host == "discord.com" || host.endsWith(".discord.com") ||
+                    host == "discordapp.com" || host.endsWith(".discordapp.com") ||
+                    host == "discordapp.net" || host.endsWith(".discordapp.net") ||
+                    host == "discord.gg" || host == "discord.media" ||
+                    host == "discord.gift" || host == "discord.new"
+                if (scheme == "https" && discordHost) return false
+                // Keep third-party pages out of the signed-in Discord WebView.
+                return try {
+                    startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri))
+                    true
+                } catch (_: Exception) {
+                    Toast.makeText(this@MainActivity, "No browser is available for this link", Toast.LENGTH_SHORT).show()
+                    true
+                }
+            }
+            override fun onPageFinished(view: WebView?, url: String?) {
+                swipe.isRefreshing = false
+                applyCustomizations()
+                applyProfileEnhancements()
+                runPlugins()
+            }
         }
         web.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
