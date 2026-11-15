@@ -15,7 +15,7 @@ class PluginManager(private val activity: Activity, private val openFeature: (In
     private val features = arrayOf("Install / manage JavaScript plugins", "Themes & appearance", "Custom CSS editor", "Chat & message tools", "Cosmetic lab", "Rich Presence preview")
     private fun postToUi(action: () -> Unit) {
         if (activity.isFinishing || activity.isDestroyed) return
-        postToUi {
+        activity.runOnUiThread {
             if (!activity.isFinishing && !activity.isDestroyed) action()
         }
     }
