@@ -1430,10 +1430,6 @@ class MainActivity : Activity() {
                         // Executable plugins are never imported. Ignore unknown preference names
                         // so crafted backups cannot create unexpected SharedPreferences types.
                         if (key == "custom_plugins") continue
-                        val allowed = key in booleanKeys || key in integerKeys ||
-                            key in setOf("custom_accent", "css", "snippet_vault", "message_studio_draft", "bookmarks", "profile_badges") ||
-                            key.matches(Regex("feature_[a-z_]+")) || key.matches(Regex("rpc_[a-z0-9_]+"))
-                        if (!allowed) { skipped++; continue }
                         val item=values.optJSONObject(key)
                         if (item == null) { skipped++; continue }
                         val value=item.optString("value", "")
