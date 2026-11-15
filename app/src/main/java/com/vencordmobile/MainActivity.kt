@@ -289,7 +289,7 @@ class MainActivity : Activity() {
                     tile("Theme gallery","Eleven colour themes and layout controls") { showThemes() }
                     tile("Accent & typography","Custom colours and font choices") { showTypographySettings() }
                     tile("Style presets","One-tap chat layout presets") { showStylePresets() }
-                    tile("Custom CSS","Build your own visual style") { editCss() }
+                    tile("Custom CSS workbench","Offline Ace editor with syntax highlighting") { editCss() }
                     tile("Profile cosmetics","Local-only profile decoration preview") { cosmeticLab() }
                 }
                 "Tools" -> {
@@ -665,11 +665,51 @@ class MainActivity : Activity() {
             }.setNegativeButton("Close", null).show()
     }
 
+    private inner class CssEditorBridge {
+        @android.webkit.JavascriptInterface
+        fun save(value: String) {
+            runOnUiThread {
+                prefs.edit().putString("css", value).apply()
+                applyCustomizations()
+                Toast.makeText(this@MainActivity, "CSS saved and applied", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun editCss() {
-        val input = EditText(this).apply { minLines = 8; gravity = Gravity.TOP; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE; setText(prefs.getString("css", "")); hint = "/* Your CSS */\nbody { }" }
-        AlertDialog.Builder(this).setTitle("Custom CSS (local)")
-            .setView(input).setPositiveButton("Save") { _, _ -> prefs.edit().putString("css", input.text.toString()).apply(); applyCustomizations() }
-            .setNeutralButton("Clear") { _, _ -> prefs.edit().remove("css").apply(); applyCustomizations() }.setNegativeButton("Cancel", null).show()
+        val initial = android.util.Base64.encodeToString(prefs.getString("css","").toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
+        val editor = WebView(this).apply {
+            settings.javaScriptEnabled = true
+            settings.allowFileAccess = true // isolated editor; Discord WebView stays file-locked
+            settings.domStorageEnabled = false
+            addJavascriptInterface(CssEditorBridge(), "NexoraEditor")
+        }
+        val html = """
+            <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+            <style>html,body,#editor{margin:0;width:100%;height:100%;background:#171923;color:#e7e9f5}</style>
+            <script src="file:///android_asset/ace/ace.js"></script>
+            <script src="file:///android_asset/ace/mode-css.js"></script>
+            <script src="file:///android_asset/ace/theme-monokai.js"></script></head>
+            <body><div id="editor"></div><script>
+            var editor=ace.edit('editor');editor.setTheme('ace/theme/monokai');editor.session.setMode('ace/mode/css');
+            editor.setOptions({fontSize:'15px',showPrintMargin:false,wrap:true});
+            editor.setValue(decodeURIComponent(escape(atob('$initial'))),-1);
+            function save(){NexoraEditor.save(editor.getValue())}
+            </script></body></html>
+        """.trimIndent()
+        val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.rgb(23,25,35)) }
+        panel.addView(editor, LinearLayout.LayoutParams(-1, dp(430)))
+        val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(dp(8),dp(5),dp(8),dp(5)) }
+        fun action(label: String, click: () -> Unit) {
+            actions.addView(Button(this).apply { text=label; isAllCaps=false; setOnClickListener { click() } },LinearLayout.LayoutParams(0,dp(48),1f))
+        }
+        action("Save & apply") { editor.evaluateJavascript("save()",null) }
+        action("Clear") { editor.evaluateJavascript("editor.setValue('',-1)",null) }
+        panel.addView(actions)
+        val dialog=AlertDialog.Builder(this).setTitle("Offline CSS workbench").setView(panel).setNegativeButton("Close",null).create()
+        dialog.show()
+        dialog.window?.setLayout(-1,dp(560))
+        editor.loadDataWithBaseURL("file:///android_asset/",html,"text/html","UTF-8",null)
     }
 
     private fun showRPC() {
