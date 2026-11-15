@@ -4,12 +4,22 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 /** Bounded HTTPS-only downloader for user-selected plugin sources. */
 object SecurePluginFetcher {
     data class Result(val text: String, val finalUrl: String)
 
+
+    /** Decode source strictly so malformed UTF-8 cannot silently mutate downloaded code. */
+    internal fun decodeUtf8(bytes: ByteArray): String =
+        StandardCharsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(bytes))
+            .toString()
 
     /** Validate plugin source URLs before opening a network connection. */
     internal fun validateHttpsUrl(url: URL) {
@@ -89,7 +99,7 @@ object SecurePluginFetcher {
                         bytes.write(buffer, 0, count)
                     }
                 }
-                return Result(String(bytes.toByteArray(), StandardCharsets.UTF_8), current.toString())
+                return Result(decodeUtf8(bytes.toByteArray()), current.toString())
             } finally {
                 connection.disconnect()
             }
