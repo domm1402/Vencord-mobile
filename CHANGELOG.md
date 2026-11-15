@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.16
+
+- Fix a malformed theme palette separator caught by Kotlin CI.
+- Restore and verify all accessibility CSS controls, and add 10 channel/embed customisations.
+- Bump Android version code to 20 and version name to 2.16.
+
+
 ## 2.15
 
 - Restore and wire 15 accessibility toggles plus add 10 embed/channel controls: line-height, keyboard focus, larger touch targets, reaction filtering, role chips, embed metadata, attachment names and channel labels.
