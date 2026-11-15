@@ -3,7 +3,10 @@ package com.vencordmobile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PluginManifestValidatorTest {
     @Test fun parsesBoundedValidCatalog() {
         val entries = PluginManifestValidator.parse("""{"plugins":[{"name":"Test","description":"Demo","url":"https://example.com/test.js"}]}""")

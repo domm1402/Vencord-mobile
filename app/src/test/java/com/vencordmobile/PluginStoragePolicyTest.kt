@@ -5,7 +5,10 @@ import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PluginStoragePolicyTest {
     @Test fun acceptsSmallPluginCollection() {
         assertNull(PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code","console.log(1)"))))
