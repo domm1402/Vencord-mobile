@@ -30,7 +30,7 @@ class PluginStoragePolicyTest {
     @Test fun capsPluginCount() {
         val plugins = JSONArray()
         repeat(PluginStoragePolicy.MAX_PLUGINS + 1) { plugins.put(JSONObject().put("code","console.log(1)")) }
-        assertEquals("You can store up to 50 plugins", PluginStoragePolicy.validate(plugins))
+        assertEquals("You can store up to 150 plugins", PluginStoragePolicy.validate(plugins))
     }
 
     @Test fun acceptsExactPerPluginAndAggregateLimits() {
