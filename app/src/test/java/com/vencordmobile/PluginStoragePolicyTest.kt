@@ -10,6 +10,19 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class PluginStoragePolicyTest {
+    @Test fun rejectsMalformedOrOversizedPluginMetadata() {
+        assertEquals("Plugin entry 0 has invalid name",
+            PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("name", 123).put("code", "ok"))))
+        assertEquals("Plugin entry 0 name exceeds 80 characters",
+            PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("name", "n".repeat(81)).put("code", "ok"))))
+        assertEquals("Plugin entry 0 has invalid source URL",
+            PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("source", JSONObject()).put("code", "ok"))))
+        assertEquals("Plugin entry 0 source URL is too long",
+            PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("source", "s".repeat(2049)).put("code", "ok"))))
+        assertEquals("Plugin entry 0 has invalid enabled flag",
+            PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("enabled", "true").put("code", "ok"))))
+    }
+
     @Test fun acceptsSmallPluginCollection() {
         assertNull(PluginStoragePolicy.validate(JSONArray().put(JSONObject().put("code","console.log(1)"))))
     }
