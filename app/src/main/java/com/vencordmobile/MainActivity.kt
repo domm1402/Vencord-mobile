@@ -717,6 +717,7 @@ class MainActivity : Activity() {
         }
         action("Save & apply") { editor.evaluateJavascript("save()",null) }
         action("Clear") { editor.evaluateJavascript("editor.setValue('',-1)",null) }
+        action("Import URL") { importCssUrl(editor) }
         panel.addView(actions)
         val dialog=AlertDialog.Builder(this).setTitle("Offline CSS workbench").setView(panel).setNegativeButton("Close",null).create()
         dialog.show()
@@ -724,6 +725,32 @@ class MainActivity : Activity() {
         editor.loadDataWithBaseURL("file:///android_asset/",html,"text/html","UTF-8",null)
     }
 
+    private fun importCssUrl(editor: WebView) {
+        val input=EditText(this).apply { hint="HTTPS CSS URL or raw GitHub link"; inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI }
+        AlertDialog.Builder(this).setTitle("Import remote theme").setMessage("Fetch CSS over HTTPS, review it, then save it locally.").setView(input).setPositiveButton("Fetch") { _, _ ->
+            val url=input.text.toString().trim()
+            if(url.isBlank()){Toast.makeText(this,"Enter a URL",Toast.LENGTH_SHORT).show();return@setPositiveButton}
+            Toast.makeText(this,"Fetching CSS…",Toast.LENGTH_SHORT).show()
+            kotlin.concurrent.thread {
+                try {
+                    val raw=PluginSourceUrl.toRawUrl(url)
+                    val result=SecurePluginFetcher.fetch(raw,1_000_000,"NEXORA-CSS-Importer")
+                    val css=result.text
+                    require(css.isNotBlank()){"CSS file is empty"}
+                    require(!css.contains("<html",true) && !css.contains("<!doctype",true)){"URL returned HTML, not CSS"}
+                    runOnUiThread {
+                        if(isFinishing || isDestroyed)return@runOnUiThread
+                        AlertDialog.Builder(this).setTitle("Review imported CSS").setMessage("Final URL: "+result.finalUrl+"\nSize: "+css.toByteArray(Charsets.UTF_8).size+" bytes\n\nOnly import CSS from sources you trust.").setPositiveButton("Replace & apply") { _, _ ->
+                            prefs.edit().putString("css",css).apply()
+                            applyCustomizations()
+                            editor.evaluateJavascript("editor.setValue("+org.json.JSONObject.quote(css)+",-1)",null)
+                            Toast.makeText(this,"Theme imported and applied locally",Toast.LENGTH_LONG).show()
+                        }.setNegativeButton("Cancel",null).show()
+                    }
+                } catch(e:Exception) { runOnUiThread { if(!isFinishing&&!isDestroyed) AlertDialog.Builder(this).setTitle("CSS import failed").setMessage(e.message ?: "Could not fetch CSS").setPositiveButton("OK",null).show() } }
+            }
+        }.setNegativeButton("Cancel",null).show()
+    }
     private fun showRPC() {
         val fields = linkedMapOf<String, EditText>()
         lateinit var form: LinearLayout
